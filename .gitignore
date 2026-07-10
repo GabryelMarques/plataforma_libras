@@ -1,0 +1,21 @@
+# Ambiente Virtual
+venv/
+env/
+
+# Arquivos compilados do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Banco de Dados local do SQLite
+db.sqlite3
+
+# Arquivos de Mídia (Uploads de usuários e admin)
+media/
+
+# Configurações de IDE
+.vscode/
+.idea/
+
+# Arquivos de ambiente ocultos (onde ficarão senhas depois)
+.env

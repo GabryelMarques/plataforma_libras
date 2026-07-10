@@ -1,0 +1,260 @@
+/* static/css/style.css */
+:root {
+    --brand-primary: #156643;
+    --brand-primary-hover: #0f4b31;
+    --brand-light: #f4f9f7;
+    --text-dark: #1f2937;
+    --text-muted: #6b7280;
+    --border-light: #e5e7eb;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    background-color: #ffffff;
+}
+
+/* Tipografia e Cores */
+.text-brand { color: var(--brand-primary); }
+.bg-brand { background-color: var(--brand-primary); }
+.bg-brand-light { background-color: var(--brand-light); }
+
+h1, h2, h3, h4, h5, h6 { font-weight: 700; letter-spacing: -0.02em; }
+
+/* Botões Customizados */
+.btn-brand {
+    background-color: var(--brand-primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn-brand:hover {
+    background-color: var(--brand-primary-hover);
+    color: white;
+}
+.btn-outline-brand {
+    background-color: transparent;
+    color: var(--brand-primary);
+    border: 1px solid var(--brand-primary);
+    border-radius: 50px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.btn-outline-brand:hover {
+    background-color: var(--brand-light);
+    color: var(--brand-primary);
+}
+
+/* Navbar */
+.navbar {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-light);
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}
+.nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    margin: 0 12px;
+    transition: color 0.2s;
+}
+.nav-link:hover, .nav-link.active {
+    color: var(--brand-primary);
+}
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.25rem;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 80px 0;
+    position: relative;
+}
+.hero-badge {
+    display: inline-block;
+    background-color: var(--brand-light);
+    color: var(--brand-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 50px;
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+}
+.hero-title {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    margin-bottom: 24px;
+}
+.hero-text {
+    font-size: 1.125rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 32px;
+    max-width: 90%;
+}
+.video-container {
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    position: relative;
+    background-color: #0f172a;
+}
+.video-container video {
+    width: 100%;
+    display: block;
+}
+
+/* Como Funciona (Steps) */
+.steps-section {
+    padding: 80px 0;
+    background-color: var(--brand-light);
+    border-radius: 40px;
+    margin: 0 24px;
+}
+.step-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    color: var(--brand-primary);
+    font-size: 1.5rem;
+}
+.step-icon-wrapper.active {
+    background-color: var(--brand-primary);
+    color: white;
+}
+.step-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.step-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Módulos Cards */
+.modulos-section { padding: 100px 0; }
+.module-card {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    height: 100%;
+    cursor: pointer;
+}
+.module-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+    border-color: rgba(21, 102, 67, 0.3);
+}
+.module-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--brand-light);
+    color: var(--brand-primary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.module-badge {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.module-footer {
+    border-top: 1px solid var(--border-light);
+    padding-top: 16px;
+    margin-top: 24px;
+}
+
+/* Sobre a Pesquisa */
+.pesquisa-card {
+    background-color: var(--brand-primary);
+    border-radius: 24px;
+    padding: 56px;
+    color: white;
+    background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.03)"/></svg>');
+    background-size: 200px;
+}
+.pesquisa-metric-box {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    height: 100%;
+}
+
+/* FAQ Accordion */
+.faq-section { padding: 100px 0; }
+.accordion-item {
+    border: 1px solid var(--border-light);
+    border-radius: 12px !important;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.accordion-button {
+    font-weight: 600;
+    color: var(--text-dark);
+    padding: 20px 24px;
+    box-shadow: none !important;
+}
+.accordion-button:not(.collapsed) {
+    background-color: var(--brand-light);
+    color: var(--brand-primary);
+}
+.accordion-body {
+    color: var(--text-muted);
+    padding: 0 24px 24px;
+    line-height: 1.6;
+}
+
+/* Footer */
+footer {
+    background-color: var(--brand-primary);
+    color: white;
+    padding: 80px 0 40px;
+}
+.footer-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+.footer-link:hover { color: white; }
+.social-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-right: 8px;
+    transition: all 0.2s;
+}
+.social-btn:hover { background-color: rgba(255,255,255,0.2); color: white; }
+
+@media (max-width: 991px) {
+    .hero-title { font-size: 2.5rem; }
+    .steps-section { margin: 0; padding: 40px 20px; border-radius: 0; }
+    .pesquisa-card { padding: 32px; }
+}

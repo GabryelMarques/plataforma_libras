@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Início | Evolução em Libras{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center gy-5">
+            <div class="col-lg-6">
+                <span class="hero-badge">Plataforma Educacional Inclusiva</span>
+                <h1 class="hero-title">Aprenda <span class="text-brand">Evolução Biológica</span> em Libras</h1>
+                <p class="hero-text">Uma plataforma desenvolvida para facilitar o aprendizado de biologia de forma interativa e imersiva na primeira língua da comunidade surda.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <!-- O link de cadastro/login será configurado depois -->
+                    <a href="#" class="btn btn-brand">Começar a Aprender <i class="bi bi-arrow-right ms-2"></i></a>
+                    <a href="#pesquisa" class="btn btn-outline-brand">Conheça o Projeto</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="video-container">
+                    <!-- Substitua o link pelo vídeo de apresentação real da plataforma -->
+                    <video controls poster="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80">
+                        <!-- <source src="{% static 'videos/apresentacao.mp4' %}" type="video/mp4"> -->
+                        <source src="#" type="video/mp4">
+                        Seu navegador não suporta vídeos HTML5.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Como Funciona -->
+<div class="container my-5">
+    <section id="como-funciona" class="steps-section text-center">
+        <div class="mb-5">
+            <h2 class="fw-bold mb-3">Como Funciona</h2>
+            <p class="text-muted">Entenda o passo a passo da nossa metodologia de ensino e participe da pesquisa.</p>
+        </div>
+        
+        <div class="row gx-2 gy-4 justify-content-center px-lg-5">
+            <!-- Step 1 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="step-icon-wrapper active"><i class="bi bi-person-plus-fill"></i></div>
+                <h3 class="step-title">Cadastro</h3>
+                <p class="step-desc">Crie sua conta no sistema</p>
+            </div>
+            <!-- Step 2 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="step-icon-wrapper"><i class="bi bi-file-earmark-text"></i></div>
+                <h3 class="step-title">TCLE</h3>
+                <p class="step-desc">Aceite o termo da pesquisa</p>
+            </div>
+            <!-- Step 3 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="step-icon-wrapper"><i class="bi bi-bar-chart-steps"></i></div>
+                <h3 class="step-title">Pré-Teste</h3>
+                <p class="step-desc">Avaliação diagnóstica inicial</p>
+            </div>
+            <!-- Step 4 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="step-icon-wrapper"><i class="bi bi-play-circle"></i></div>
+                <h3 class="step-title">Módulos</h3>
+                <p class="step-desc">Videoaulas em Libras</p>
+            </div>
+            <!-- Step 5 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="step-icon-wrapper"><i class="bi bi-clipboard2-check"></i></div>
+                <h3 class="step-title">Atividades</h3>
+                <p class="step-desc">Exercícios de fixação</p>
+            </div>
+            <!-- Step 6 -->
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="step-icon-wrapper"><i class="bi bi-award"></i></div>
+                <h3 class="step-title">Pós-Teste</h3>
+                <p class="step-desc">Avaliação de aprendizado</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Módulos -->
+<section id="modulos" class="modulos-section bg-light">
+    <div class="container">
+        <div class="row mb-5 align-items-end">
+            <div class="col-lg-6">
+                <p class="text-brand text-uppercase fw-bold mb-2" style="letter-spacing: 1px; font-size: 0.85rem;">Conteúdo Programático</p>
+                <h2 class="display-6 fw-bold mb-0">Um currículo completo, dividido em seis módulos.</h2>
+            </div>
+            <div class="col-lg-6 text-lg-end mt-3 mt-lg-0">
+                <p class="text-muted mb-0">Cada módulo contém videoaulas em Libras, materiais visuais de apoio e atividades interativas.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Início do laço de repetição -->
+            {% for modulo in modulos %}
+            <div class="col-md-6 col-lg-4">
+                <div class="module-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="module-icon"><i class="bi bi-collection-play-fill fs-5"></i></div>
+                        <!-- Formata a ordem para ter dois dígitos (ex: 01, 02) -->
+                        <span class="module-badge">Módulo {{ modulo.ordem|stringformat:"02d" }}</span>
+                    </div>
+
+                    {% if modulo.tem_imagem_capa %}
+                        <img src="{{ modulo.imagem_capa.url }}" alt="{{ modulo.titulo }}" class="img-fluid rounded-3 mb-3" style="height: 180px; width: 100%; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light rounded-3 mb-3 d-flex align-items-center justify-content-center" style="height: 180px;">
+                            <i class="bi bi-image fs-1 text-muted"></i>
+                        </div>
+                    {% endif %}
+
+                    <h4 class="fs-5 fw-bold mb-2">{{ modulo.titulo }}</h4>
+                    
+                    <!-- Mostra a descrição. Se for muito longa, corta nos 100 caracteres -->
+                    <p class="text-muted fs-6 mb-4">{{ modulo.descricao|truncatechars:100 }}</p>
+                    
+                    <div class="module-footer d-flex justify-content-between align-items-center">
+                        <span class="text-muted" style="font-size: 0.8rem;">
+                            <!-- O Django conta automaticamente os vídeos e atividades ligados a este módulo -->
+                            {{ modulo.videoaulas.count }} videoaula{{ modulo.videoaulas.count|pluralize }} • 
+                            {{ modulo.atividades.count }} atividade{{ modulo.atividades.count|pluralize }}
+                        </span>
+                        <span class="text-brand fw-bold" style="font-size: 0.85rem;">Ver Mais <i class="bi bi-chevron-right"></i></span>
+                    </div>
+                </div>
+            </div>
+            
+            {% empty %}
+            <!-- Se não houver nenhum módulo cadastrado no banco, mostra esta mensagem -->
+            <div class="col-12 text-center py-5">
+                <div class="text-muted mb-3"><i class="bi bi-inbox fs-1"></i></div>
+                <h4 class="fw-bold">Nenhum módulo cadastrado</h4>
+                <p class="text-muted">Os módulos aparecerão aqui assim que forem inseridos no painel administrativo.</p>
+            </div>
+            {% endfor %}
+            <!-- Fim do laço -->
+        </div>
+    </div>
+</section>
+
+<!-- Sobre a Pesquisa -->
+<section id="pesquisa" class="container py-5">
+    <div class="pesquisa-card">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0 pr-lg-5">
+                <span class="badge bg-white text-brand mb-3 px-3 py-2 text-uppercase" style="letter-spacing: 1px;">Pesquisa Acadêmica</span>
+                <h2 class="display-5 fw-bold mb-4">Sobre a Pesquisa</h2>
+                <p class="fs-5 mb-4 text-white-50" style="line-height: 1.8;">
+                    Este sistema foi desenvolvido como produto educacional para estudantes surdos, utilizando a Língua Brasileira de Sinais (Libras) como principal meio de apresentação dos conteúdos.
+                </p>
+                <p class="mb-5 text-white-50">
+                    Sua participação ajudará a compreender como ferramentas digitais bilíngues impactam o processo de ensino e aprendizagem nas escolas.
+                </p>
+                <!-- Se houver um PDF com detalhes da pesquisa, colocaremos o link aqui depois -->
+                <a href="#" class="btn btn-light text-brand fw-bold px-4 py-2 rounded-pill">Visualizar Documento <i class="bi bi-download ms-2"></i></a>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="pesquisa-metric-box">
+                            <p class="text-white-50 mb-1" style="font-size: 0.85rem;">Instituição</p>
+                            <h4 class="fw-bold m-0">UFT</h4>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="pesquisa-metric-box">
+                            <p class="text-white-50 mb-1" style="font-size: 0.85rem;">Nível</p>
+                            <h4 class="fw-bold m-0">Mestrado</h4>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="pesquisa-metric-box">
+                            <p class="text-white-50 mb-1" style="font-size: 0.85rem;">Área</p>
+                            <h4 class="fw-bold m-0">Ensino de Ciências</h4>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="pesquisa-metric-box">
+                            <p class="text-white-50 mb-1" style="font-size: 0.85rem;">Aprovação Ética</p>
+                            <h4 class="fw-bold m-0">CEP - em vigor</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="faq-section bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-6">Tudo o que você precisa saber.</h2>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="accordionFAQ">
+                    <!-- Item 1 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Preciso saber Libras para participar?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                Sim. A plataforma foi inteiramente desenhada tendo a Língua Brasileira de Sinais (Libras) como a primeira língua (L1) de instrução, focada no público surdo.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Quem pode se inscrever no curso?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                Estudantes surdos do ensino médio e fundamental que estejam vinculados às escolas parceiras da pesquisa ou que recebam o convite para participação.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Meus dados estão protegidos?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                Absolutamente. Todos os dados são anonimizados e utilizados exclusivamente para fins de análise estatística da pesquisa acadêmica, conforme aprovado pelo Comitê de Ética.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 4 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Haverá certificado de conclusão?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                Sim, após a finalização de todos os módulos, atividades e do questionário pós-teste, o participante receberá uma declaração de conclusão.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 5 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                Quanto tempo leva para concluir?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                Você pode fazer no seu próprio ritmo. Em média, os estudantes levam cerca de 3 a 4 semanas dedicando poucas horas semanais para concluir todos os módulos.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 6 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                Posso acessar pelo celular?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#accordionFAQ">
+                            <div class="accordion-body">
+                                Sim! A plataforma é 100% responsiva e otimizada para funcionar perfeitamente em computadores, tablets e smartphones.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
