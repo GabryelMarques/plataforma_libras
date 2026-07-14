@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import home, dashboard, detalhe_modulo, assistir_aula, responder_atividade, painel_pesquisador, exportar_dados_csv, gestao_modulos
+from core.views import home, dashboard, detalhe_modulo, assistir_aula, responder_atividade, painel_pesquisador, exportar_dados_csv, gestao_modulos, criar_modulo, editar_modulo, excluir_modulo
 from accounts.views import cadastro, fazer_login, sair, meu_perfil
 
 
@@ -36,6 +36,9 @@ urlpatterns = [
     path('painel-pesquisador/', painel_pesquisador, name='painel_pesquisador'),
     path('exportar-dados-csv/', exportar_dados_csv, name='exportar_dados_csv'),
     path('gestao-modulos/', gestao_modulos, name='gestao_modulos'),
+    path('criar-modulo/', criar_modulo, name='criar_modulo'),
+    path('gestao/modulos/<int:modulo_id>/editar/', editar_modulo, name='editar_modulo'),
+    path('gestao/modulos/<int:modulo_id>/excluir/', excluir_modulo, name='excluir_modulo'), 
 
 ]
 

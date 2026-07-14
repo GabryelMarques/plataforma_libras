@@ -1,0 +1,60 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'gestao_modulos' %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <h3 class="fw-bold mb-0">Novo Módulo</h3>
+        <span class="text-muted small">Preencha os dados abaixo para criar um novo módulo na trilha de aprendizagem.</span>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-custom bg-white p-4 p-md-5 border shadow-sm">
+            
+            <!-- Formulário -->
+            <form method="POST" action="{% url 'criar_modulo' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="titulo" class="form-label fw-bold text-dark">Título do Módulo <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg bg-light border-0" id="titulo" name="titulo" placeholder="Ex: Introdução à Genética" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="descricao" class="form-label fw-bold text-dark">Descrição <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light border-0" id="descricao" name="descricao" rows="4" placeholder="Descreva brevemente o que será ensinado neste módulo..." required></textarea>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="ordem" class="form-label fw-bold text-dark">Ordem de Exibição <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control bg-light border-0" id="ordem" name="ordem" value="1" min="1" required>
+                        <div class="form-text small">Qual a posição deste módulo na trilha? (1, 2, 3...)</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="imagem_capa" class="form-label fw-bold text-dark">Imagem de Capa <span class="text-muted fw-normal">(Opcional)</span></label>
+                        <input type="file" class="form-control bg-light border-0" id="imagem_capa" name="imagem_capa" accept="image/*">
+                        <div class="form-text small">Proporção sugerida: 16:9 (formato paisagem).</div>
+                    </div>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
+                    <a href="{% url 'gestao_modulos' %}" class="btn btn-light px-4 fw-semibold rounded-pill border">Cancelar</a>
+                    <button type="submit" class="btn text-white px-5 fw-bold rounded-pill shadow-sm" style="background-color: var(--brand-green);">
+                        Salvar Módulo <i class="bi bi-check-lg ms-1"></i>
+                    </button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

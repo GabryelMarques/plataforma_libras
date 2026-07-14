@@ -295,3 +295,53 @@ def gestao_modulos(request):
         'modulos': modulos,
     }
     return render(request, 'gestao_modulos.html', context)
+
+@staff_member_required(login_url='/login/')
+def criar_modulo(request):
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo')
+        descricao = request.POST.get('descricao')
+        ordem = request.POST.get('ordem', 1)
+        # request.FILES pega os arquivos enviados (como a imagem da capa)
+        imagem_capa = request.FILES.get('imagem_capa')
+
+        # Cria o módulo no banco de dados
+        Modulo.objects.create(
+            titulo=titulo,
+            descricao=descricao,
+            ordem=ordem,
+            imagem_capa=imagem_capa
+        )
+        
+        # Volta para a lista de módulos após salvar
+        return redirect('gestao_modulos')
+        
+    return render(request, 'criar_modulo.html')
+
+@staff_member_required(login_url='/login/')
+def editar_modulo(request, modulo_id):
+    modulo = get_object_or_404(Modulo, id=modulo_id)
+    
+    if request.method == 'POST':
+        modulo.titulo = request.POST.get('titulo')
+        modulo.descricao = request.POST.get('descricao')
+        modulo.ordem = request.POST.get('ordem', 1)
+        
+        # Só atualiza a imagem se o usuário tiver enviado uma nova
+        if 'imagem_capa' in request.FILES:
+            modulo.imagem_capa = request.FILES.get('imagem_capa')
+            
+        modulo.save()
+        return redirect('gestao_modulos')
+        
+    return render(request, 'editar_modulo.html', {'modulo': modulo})
+
+@staff_member_required(login_url='/login/')
+def excluir_modulo(request, modulo_id):
+    modulo = get_object_or_404(Modulo, id=modulo_id)
+    
+    # Exige o método POST por segurança (evita que um link solto exclua dados)
+    if request.method == 'POST':
+        modulo.delete()
+        
+    return redirect('gestao_modulos')
