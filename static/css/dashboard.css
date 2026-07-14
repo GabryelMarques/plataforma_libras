@@ -1,0 +1,181 @@
+:root {
+    --brand-green: #006837;
+    --brand-green-dark: #004d28;
+    --brand-green-light: #e8f5e9;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --bg-body: #f8fafc;
+    --sidebar-width: 260px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-dark);
+}
+
+/* Menu Lateral (Sidebar) */
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--brand-green);
+    box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+    padding: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-logo {
+    padding: 0 1.5rem 2rem 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.nav-link-custom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.875rem 1.5rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.nav-link-custom:hover, .nav-link-custom.active {
+    color: white;
+    background-color: var(--brand-green-dark);
+    border-left-color: #4ade80;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding: 0 1.5rem;
+}
+
+.nav-link-custom.logout {
+    color: #fca5a5;
+}
+.nav-link-custom.logout:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-left-color: #ef4444;
+    color: white;
+}
+
+/* Conteúdo Principal */
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Topbar */
+.topbar {
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem 3rem;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background-color: var(--brand-green-light);
+    color: var(--brand-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* Área do Conteúdo */
+.content-area {
+    padding: 2rem 3rem 3rem 3rem;
+    flex: 1;
+}
+
+/* Cards Gerais */
+.card-custom {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+}
+
+.card-modulo {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Overlay do Menu Mobile (Fundo escuro) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 995;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+/* ========================================= */
+/* RESPONSIVIDADE (Telas menores que 768px)  */
+/* ========================================= */
+@media (max-width: 768px) {
+    /* Esconde a barra lateral puxando ela para a esquerda */
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    /* Classe que o JavaScript vai adicionar para mostrar a barra */
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    /* O conteúdo principal ocupa 100% da tela */
+    .main-content {
+        margin-left: 0;
+    }
+
+    /* Ajustes de espaçamento para caber no celular */
+    .topbar {
+        padding: 1rem 1.5rem;
+    }
+
+    .content-area {
+        padding: 1.5rem 1rem 3rem 1rem;
+    }
+}

@@ -1,0 +1,103 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Botão Voltar para o Módulo -->
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'detalhe_modulo' aula.modulo.id %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none text-muted">Trilha</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'detalhe_modulo' aula.modulo.id %}" class="text-decoration-none text-muted">{{ aula.modulo.titulo }}</a></li>
+            <li class="breadcrumb-item active fw-semibold text-dark" aria-current="page">Aula {{ aula.ordem }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row g-4">
+    <!-- Coluna Principal (Vídeo e Detalhes) -->
+    <div class="col-lg-8">
+        <!-- Player de Vídeo -->
+        <div class="card-custom p-0 overflow-hidden mb-4 bg-dark border-0 shadow-sm" style="aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;">
+            {% if aula.video %}
+                <video controls controlsList="nodownload" class="w-100 h-100" style="object-fit: cover;" poster="{% if aula.thumbnail %}{{ aula.thumbnail.url }}{% endif %}">
+                    <source src="{{ aula.video.url }}" type="video/mp4">
+                    Seu navegador não suporta a reprodução de vídeos.
+                </video>
+            {% else %}
+                <div class="text-center text-white opacity-50 p-5">
+                    <i class="bi bi-camera-video-off fs-1 mb-3 d-block"></i>
+                    <p>O arquivo de vídeo ainda não foi anexado a esta aula.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Título e Ação de Conclusão -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <span class="text-muted fw-semibold small d-block mb-1">AULA {{ aula.ordem }}</span>
+                <h3 class="fw-bold mb-0">{{ aula.titulo }}</h3>
+            </div>
+            
+            <!-- Botão de Concluir Aula -->
+            <div>
+                {% if progresso.concluida %}
+                    <button class="btn btn-success rounded-pill px-4" disabled style="background-color: #10b981; border: none;">
+                        <i class="bi bi-check-circle-fill me-2"></i> Aula Concluída
+                    </button>
+                {% else %}
+                    <form method="POST" action="{% url 'assistir_aula' aula.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn rounded-pill px-4 fw-semibold text-white shadow-sm" style="background-color: var(--brand-green);">
+                            <i class="bi bi-check-lg me-1"></i> Marcar como Concluída
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Descrição da Aula -->
+        <div class="card-custom bg-white p-4 mb-4">
+            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle text-muted"></i> Sobre esta aula
+            </h5>
+            <div class="text-muted" style="line-height: 1.6;">
+                {% if aula.descricao %}
+                    {{ aula.descricao|linebreaks }}
+                {% else %}
+                    <p class="mb-0">Nenhuma descrição fornecida para esta aula.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna Lateral (Informações Extras) -->
+    <div class="col-lg-4">
+        <div class="card-custom p-4 bg-light border-0">
+            <h6 class="fw-bold text-uppercase text-muted mb-4" style="font-size: 0.8rem; letter-spacing: 0.5px;">Detalhes Técnicos</h6>
+            
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="bg-white rounded p-2 text-center shadow-sm" style="width: 40px; color: var(--brand-green);">
+                    <i class="bi bi-clock-history fs-5"></i>
+                </div>
+                <div>
+                    <p class="mb-0 small text-muted">Duração</p>
+                    <p class="mb-0 fw-semibold">{% if aula.duracao %}{{ aula.duracao }}{% else %}Não informada{% endif %}</p>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white rounded p-2 text-center shadow-sm" style="width: 40px; color: var(--brand-green);">
+                    <i class="bi bi-folder2-open fs-5"></i>
+                </div>
+                <div>
+                    <p class="mb-0 small text-muted">Módulo</p>
+                    <p class="mb-0 fw-semibold">{{ aula.modulo.titulo }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Botão Voltar e Navegação -->
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'dashboard' %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none text-muted">Trilha</a></li>
+            <li class="breadcrumb-item active fw-semibold text-dark" aria-current="page">Módulo 0{{ modulo.ordem }}</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Header do Módulo (Banner) -->
+<div class="card-custom mb-5 overflow-hidden p-0 border-0 shadow-sm">
+    <!-- Verifica se o módulo tem imagem de capa -->
+    {% if modulo.imagem_capa %}
+        <div style="height: 220px; background-image: url('{{ modulo.imagem_capa.url }}'); background-size: cover; background-position: center;"></div>
+    {% else %}
+        <div style="height: 120px; background-color: var(--brand-green);"></div>
+    {% endif %}
+    
+    <div class="p-4 p-md-5 bg-white">
+        <span class="badge text-bg-success bg-opacity-10 text-success mb-2 px-3 py-2 rounded-pill border border-success-subtle">
+            Módulo 0{{ modulo.ordem }}
+        </span>
+        <h2 class="fw-bold mb-3">{{ modulo.titulo }}</h2>
+        <p class="text-muted mb-0 fs-6" style="max-width: 800px; line-height: 1.6;">{{ modulo.descricao }}</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Coluna Esquerda: Lista de Videoaulas -->
+    <div class="col-lg-8">
+        <h4 class="fw-bold mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-play-circle-fill" style="color: var(--brand-green);"></i> Videoaulas
+        </h4>
+        
+        <div class="d-flex flex-column gap-3">
+            {% for aula in aulas %}
+            <!-- Card da Aula (Borda verde se concluída, cinza se pendente) -->
+            <div class="card-custom p-3 d-flex align-items-center gap-4" style="border-left: 4px solid {% if aula.id in aulas_concluidas_ids %}var(--brand-green){% else %}#e2e8f0{% endif %}; transition: transform 0.2s;">
+                
+                <!-- Thumbnail da Aula -->
+                <div class="rounded-3 overflow-hidden position-relative bg-light d-flex align-items-center justify-content-center" style="width: 140px; height: 90px; flex-shrink: 0;">
+                    {% if aula.thumbnail %}
+                        <img src="{{ aula.thumbnail.url }}" alt="{{ aula.titulo }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                    {% else %}
+                        <i class="bi bi-camera-video text-muted fs-3 opacity-25"></i>
+                    {% endif %}
+                    
+                    <!-- Ícone de Play Escuro sobre a imagem -->
+                    <div class="position-absolute bg-dark bg-opacity-50 w-100 h-100 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-play-fill text-white fs-2"></i>
+                    </div>
+                </div>
+
+                <!-- Informações da Aula -->
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="text-muted small fw-semibold">Aula {{ aula.ordem }}</span>
+                        
+                        <!-- Lógica do Selo de Concluída -->
+                        {% if aula.id in aulas_concluidas_ids %}
+                            <span class="badge bg-success rounded-pill px-2 py-1" style="font-size: 0.65rem;">
+                                <i class="bi bi-check2-all"></i> Concluída
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <h6 class="fw-bold mb-1">{{ aula.titulo }}</h6>
+                    
+                    <span class="text-muted small">
+                        <i class="bi bi-clock me-1"></i> 
+                        {% if aula.duracao %}{{ aula.duracao }}{% else %}--:--{% endif %}
+                    </span>
+                </div>
+
+                <!-- Botão de Ação -->
+                <div class="px-2">
+                <a href="{% url 'assistir_aula' aula.id %}" class="btn {% if aula.id in aulas_concluidas_ids %}btn-light text-success{% else %}btn-outline-success{% endif %} rounded-pill px-4 fw-semibold">
+                    {% if aula.id in aulas_concluidas_ids %}Rever Aula{% else %}Assistir{% endif %}
+                </a>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Mensagem se não houver aulas no módulo -->
+            <div class="alert alert-light text-center py-5 border text-muted">
+                <i class="bi bi-camera-video-off fs-1 mb-2 opacity-50 d-block"></i>
+                Nenhuma videoaula cadastrada neste módulo ainda.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Coluna Direita: Atividades (Exercícios) -->
+    <div class="col-lg-4">
+        <h4 class="fw-bold mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-list-task" style="color: var(--brand-green);"></i> Atividades
+        </h4>
+        
+        <div class="d-flex flex-column gap-3">
+            {% for atividade in atividades %}
+            <div class="card-custom p-4 bg-light border-0">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; color: var(--brand-green);">
+                        <i class="bi bi-clipboard2-check fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0" style="line-height: 1.4;">{{ atividade.titulo }}</h6>
+                </div>
+                <p class="text-muted small mb-4">{{ atividade.descricao }}</p>
+                <!-- Botão para o Pós/Pré teste ou Quiz -->
+                <a href="#" class="btn w-100 fw-semibold" style="background-color: var(--brand-green); color: white; border-radius: 8px;">
+                    Acessar Atividade
+                </a>
+            </div>
+            {% empty %}
+            <!-- Mensagem se não houver atividades -->
+            <div class="card-custom p-4 bg-light border-0 text-center text-muted">
+                <i class="bi bi-clipboard-x fs-1 mb-2 opacity-25"></i>
+                <p class="mb-0 small">Nenhuma atividade avaliativa para este módulo.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

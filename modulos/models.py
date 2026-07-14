@@ -1,4 +1,5 @@
 from django.db import models
+from accounts.models import Usuario
 
 class Modulo(models.Model):
     titulo = models.CharField(max_length=255, verbose_name="Título")
@@ -37,3 +38,26 @@ class Atividade(models.Model):
 
     def __str__(self):
         return self.titulo
+
+class ProgressoAula(models.Model):
+    # Quem é o aluno?
+    aluno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='progressos_aulas')
+    
+    # Qual aula ele está assistindo?
+    aula = models.ForeignKey('Videoaula', on_delete=models.CASCADE)
+    
+    # Ele terminou a aula?
+    concluida = models.BooleanField(default=False)
+    
+    # Quando foi a última vez que ele mexeu nessa aula? (Isso alimenta o card "Continue de onde parou")
+    ultimo_acesso = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        # Garante que não teremos duas anotações da mesma aula para o mesmo aluno
+        unique_together = ['aluno', 'aula']
+        verbose_name = "Progresso de Aula"
+        verbose_name_plural = "Progressos de Aulas"
+
+    def __str__(self):
+        status = "Concluída" if self.concluida else "Em andamento"
+        return f"{self.aluno.nome} - {self.aula.titulo} ({status})"

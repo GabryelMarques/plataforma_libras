@@ -41,10 +41,10 @@
                 <div class="d-flex align-items-center gap-3">
                     {% if user.is_authenticated %}
                         <span class="text-dark fw-semibold">Olá, {{ user.nome }}</span>
-                        <!-- Altere o link do painel conforme necessário depois -->
                         <a href="/admin/" class="btn btn-brand">Acessar Painel</a>
+                        <a href="{% url 'sair' %}" class="btn btn-outline-danger ms-2">Sair</a>
                     {% else %}
-                        <a href="#" class="text-dark text-decoration-none fw-semibold">Entrar</a>
+                        <a href="{% url 'login' %}" class="text-dark text-decoration-none fw-semibold">Entrar</a>
                         <a href="{% url 'cadastro' %}" class="btn btn-brand">Criar Conta</a>
                     {% endif %}
                 </div>

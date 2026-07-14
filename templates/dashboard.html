@@ -1,0 +1,100 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Banner de Boas-vindas Simplificado -->
+<div class="card-custom mb-4" style="border-left: 4px solid var(--brand-green);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold mb-1">Olá, {{ user.nome }}! 👋</h3>
+            <p class="text-muted mb-0">Continue sua trilha de evolução em Libras.</p>
+        </div>
+        <span class="badge rounded-pill text-bg-success bg-opacity-10 text-success px-3 py-2 border border-success-subtle">
+            <i class="bi bi-circle-fill small me-1" style="font-size: 8px;"></i> Pesquisa em andamento
+        </span>
+    </div>
+</div>
+
+<!-- Linha de Métricas -->
+<div class="row g-4 mb-5">
+    <!-- Módulos -->
+    <div class="col-md-4">
+        <div class="card-custom h-100 d-flex justify-content-between align-items-center flex-row">
+            <div>
+                <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.75rem;">Aulas Concluídas</p>
+                <h3 class="fw-bold mb-0">{{ aulas_concluidas }} <span class="fs-5 text-muted fw-normal">/ {{ total_aulas }}</span></h3>
+            </div>
+            <div class="progress" style="width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(var(--brand-green) {{ progresso_geral }}%, #e2e8f0 0);">
+                <div style="width: 48px; height: 48px; background-color: white; border-radius: 50%; margin: 6px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progresso Geral -->
+    <div class="col-md-8">
+        <div class="card-custom h-100 d-flex justify-content-between align-items-center flex-row" style="background-color: var(--brand-green); color: white; border: none;">
+            <div>
+                <p class="text-uppercase fw-semibold mb-1 opacity-75" style="font-size: 0.75rem;">Progresso Geral da Trilha</p>
+                <h3 class="fw-bold mb-0 fs-1">{{ progresso_geral }}%</h3>
+            </div>
+            <i class="bi bi-trophy" style="font-size: 3rem; opacity: 0.2;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Título da Trilha -->
+<div class="mb-4">
+    <h4 class="fw-bold mb-0">Sua trilha de aprendizagem</h4>
+</div>
+
+<!-- Grid de Módulos (Com Imagens de Capa) -->
+<div class="row g-4">
+    {% for modulo in modulos %}
+    <div class="col-md-4">
+        <div class="card-modulo {% if modulo.videoaulas.count == 0 %}opacity-50{% endif %}">
+            
+            <!-- Imagem de Capa do Módulo -->
+                <!-- Imagem de Capa do Módulo -->
+                {% if modulo.imagem_capa %}
+                    <img src="{{ modulo.imagem_capa.url }}" alt="{{ modulo.titulo }}" class="img-fluid" style="height: 160px; object-fit: cover; width: 100%;">
+                {% else %}
+                <!-- Placeholder caso o admin não tenha feito upload de imagem -->
+                <div style="height: 160px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; width: 100%;">
+                    <i class="bi bi-image text-muted fs-1 opacity-25"></i>
+                </div>
+            {% endif %}
+
+            <!-- Conteúdo do Card -->
+            <div class="p-4 d-flex flex-column" style="flex: 1;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small fw-semibold">Módulo 0{{ modulo.ordem }}</span>
+                    {% if modulo.videoaulas.count > 0 %}
+                        <span class="badge text-bg-success bg-opacity-10 text-success rounded-pill">Liberado</span>
+                    {% else %}
+                        <span class="text-muted small"><i class="bi bi-lock-fill"></i> Bloqueado</span>
+                    {% endif %}
+                </div>
+                
+                <h5 class="fw-bold mb-2">{{ modulo.titulo }}</h5>
+                <p class="text-muted small mb-4">{{ modulo.descricao|truncatechars:60 }}</p>
+                
+                <div class="mt-auto">
+                    {% if modulo.videoaulas.count > 0 %}
+                        <a href="{% url 'detalhe_modulo' modulo.id %}" class="btn btn-outline-success w-100 rounded-pill fw-semibold">Acessar Módulo</a>
+                    {% else %}
+                        <button class="btn btn-light w-100 rounded-pill text-muted" disabled>Em breve</button>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-light text-center py-5 border">
+            Nenhum módulo cadastrado ainda. Adicione conteúdos no painel admin.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

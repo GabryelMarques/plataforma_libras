@@ -18,14 +18,21 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import home
-from accounts.views import cadastro
+from core.views import home, dashboard, detalhe_modulo, assistir_aula
+from accounts.views import cadastro, fazer_login, sair, meu_perfil
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
     path('cadastro/', cadastro, name='cadastro'),
+    path('login/', fazer_login, name='login'),
+    path('sair/', sair, name='sair'),
+    path('dashboard/', dashboard, name='dashboard'),
+    path('modulo/<int:modulo_id>/', detalhe_modulo, name='detalhe_modulo'),
+    path('perfil/', meu_perfil, name='meu_perfil'),
+    path('aula/<int:aula_id>/', assistir_aula, name='assistir_aula'),
+
 ]
 
 if settings.DEBUG:

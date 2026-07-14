@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from .models import Escola, Usuario
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
 
 def cadastro(request):
     # Puxa as escolas para preencher o select
@@ -44,8 +47,8 @@ def cadastro(request):
             # 5. Loga o usuário automaticamente após o cadastro
             login(request, user)
             
-            # 6. Redireciona para a Home (ou futuramente para a página do TCLE)
-            return redirect('home')
+            # 6. Redireciona para o dashboard ou para a página de TCLE
+            return redirect('dashboard')
             
         except Exception as e:
             messages.error(request, f"Erro ao criar conta: {str(e)}")
@@ -53,3 +56,32 @@ def cadastro(request):
 
     # Se for apenas um acesso normal à página (método GET), mostra o formulário vazio
     return render(request, 'cadastro.html', {'escolas': escolas})
+
+def fazer_login(request):
+    # Se o usuário já estiver logado e tentar acessar a página de login, manda pra Home
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        senha = request.POST.get('senha')
+
+        # O Django tenta encontrar o usuário com esse email e senha
+        user = authenticate(request, username=email, password=senha)
+
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard') # Redireciona para o dashboard após login bem-sucedido
+        else:
+            messages.error(request, "E-mail ou senha incorretos. Tente novamente.")
+            
+    return render(request, 'login.html')
+
+def sair(request):
+    logout(request)
+    return redirect('home')
+
+
+@login_required(login_url='/login/')
+def meu_perfil(request):
+    return render(request, 'perfil.html')
