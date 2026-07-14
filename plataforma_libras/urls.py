@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from core.views import home, dashboard, detalhe_modulo, assistir_aula
+from core.views import home, dashboard, detalhe_modulo, assistir_aula, responder_atividade, painel_pesquisador, exportar_dados_csv, gestao_modulos
 from accounts.views import cadastro, fazer_login, sair, meu_perfil
 
 
@@ -32,6 +32,10 @@ urlpatterns = [
     path('modulo/<int:modulo_id>/', detalhe_modulo, name='detalhe_modulo'),
     path('perfil/', meu_perfil, name='meu_perfil'),
     path('aula/<int:aula_id>/', assistir_aula, name='assistir_aula'),
+    path('atividade/<int:atividade_id>/', responder_atividade, name='responder_atividade'),
+    path('painel-pesquisador/', painel_pesquisador, name='painel_pesquisador'),
+    path('exportar-dados-csv/', exportar_dados_csv, name='exportar_dados_csv'),
+    path('gestao-modulos/', gestao_modulos, name='gestao_modulos'),
 
 ]
 

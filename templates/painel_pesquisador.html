@@ -1,0 +1,131 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <span class="badge bg-dark text-white px-3 py-2 rounded-pill mb-2 border border-secondary">
+            <i class="bi bi-shield-lock-fill me-1"></i> Área Restrita aos Pesquisadores
+        </span>
+        <h3 class="fw-bold mb-0">Gestão da Pesquisa</h3>
+    </div>
+    
+    <!-- Botão de Exportação para o Excel (Vamos ativar a lógica dele depois) -->
+            <a href="{% url 'exportar_dados_csv' %}" class="btn btn-dark rounded-pill px-4 shadow-sm fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i> Exportar Dados (CSV)
+            </a>
+</div>
+
+<!-- CARDS DE MÉTRICAS GERAIS -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card-custom p-4 bg-white h-100 border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Total de Participantes</p>
+                    <h2 class="fw-bold mb-0">{{ total_alunos }}</h2>
+                </div>
+                <div class="bg-primary bg-opacity-10 text-primary rounded p-3">
+                    <i class="bi bi-people-fill fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card-custom p-4 bg-white h-100 border-start border-4 border-success">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Aulas Assistidas</p>
+                    <h2 class="fw-bold mb-0">{{ aulas_assistidas_total }}</h2>
+                </div>
+                <div class="bg-success bg-opacity-10 text-success rounded p-3">
+                    <i class="bi bi-play-btn-fill fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card-custom p-4 bg-white h-100 border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted small fw-bold text-uppercase mb-1">Status do Sistema</p>
+                    <h4 class="fw-bold text-dark mb-0 mt-2">Coleta Ativa</h4>
+                </div>
+                <div class="bg-warning bg-opacity-10 text-warning rounded p-3">
+                    <i class="bi bi-activity fs-4"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABELA DE ACOMPANHAMENTO DOS ALUNOS -->
+<div class="card-custom bg-white p-0 overflow-hidden border">
+    <div class="p-4 border-bottom bg-light d-flex align-items-center gap-2">
+        <i class="bi bi-table text-muted"></i>
+        <h5 class="fw-bold mb-0">Acompanhamento da Amostra (Alunos)</h5>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="ps-4 py-3">Participante</th>
+                    <th class="py-3">Pré-teste</th>
+                    <th class="py-3" style="width: 25%;">Progresso das Aulas</th>
+                    <th class="py-3">Pós-teste</th>
+                    <th class="pe-4 py-3">Cadastro</th>
+                </tr>
+            </thead>
+            <tbody class="border-top-0">
+                {% for aluno in alunos_data %}
+                <tr>
+                    <td class="ps-4 py-3">
+                        <div class="fw-bold text-dark">{{ aluno.nome }}</div>
+                        <div class="text-muted small">{{ aluno.email }}</div>
+                    </td>
+                    
+                    <td class="py-3">
+                        {% if aluno.fez_pre %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Enviado</span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border px-2 py-1 rounded-pill">Pendente</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: {{ aluno.progresso }}%;"></div>
+                            </div>
+                            <span class="small fw-bold text-muted" style="width: 40px;">{{ aluno.progresso }}%</span>
+                        </div>
+                    </td>
+                    
+                    <td class="py-3">
+                        {% if aluno.fez_pos %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-2 py-1 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i> Enviado</span>
+                        {% else %}
+                            <span class="badge bg-light text-muted border px-2 py-1 rounded-pill">Pendente</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="pe-4 py-3 text-muted small">
+                        {{ aluno.data_cadastro|date:"d/m/Y" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                        Nenhum aluno comum cadastrado na plataforma ainda.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

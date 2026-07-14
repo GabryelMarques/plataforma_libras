@@ -179,3 +179,23 @@ body {
         padding: 1.5rem 1rem 3rem 1rem;
     }
 }
+
+    /* ========================================== */
+/* ESTILOS DO MOTOR DE TESTES (QUIZ)          */
+/* ========================================== */
+
+.hover-bg-light:hover { 
+    background-color: #e8f5e9; 
+    border-color: var(--brand-green) !important; 
+}
+
+/* Estilo para quando a alternativa estiver selecionada */
+.form-check-input:checked + span { 
+    font-weight: bold; 
+    color: var(--brand-green) !important; 
+}
+
+.form-check-input:checked { 
+    background-color: var(--brand-green); 
+    border-color: var(--brand-green); 
+}

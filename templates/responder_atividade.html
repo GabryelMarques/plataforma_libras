@@ -1,0 +1,152 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Cabeçalho -->
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'detalhe_modulo' atividade.modulo.id %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <span class="text-muted fw-semibold small text-uppercase">{{ atividade.get_tipo_display }}</span>
+        <h3 class="fw-bold mb-0">{{ atividade.titulo }}</h3>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        
+        <!-- Instruções -->
+        <div class="card-custom bg-white p-4 mb-4 border-start border-4 border-success">
+            <h5 class="fw-bold mb-2"><i class="bi bi-info-circle text-success me-2"></i>Instruções</h5>
+            <p class="text-muted mb-0">{{ atividade.descricao }}</p>
+        </div>
+
+        {% if ja_respondeu %}
+            <!-- Tela de Bloqueio (Já respondeu) -->
+            <div class="card-custom text-center p-5">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="fw-bold">Atividade Concluída!</h4>
+                <p class="text-muted">Você já enviou suas respostas para esta atividade. Seus dados foram salvos com sucesso.</p>
+                <a href="{% url 'detalhe_modulo' atividade.modulo.id %}" class="btn btn-outline-success rounded-pill px-4 mt-3">Voltar para o Módulo</a>
+            </div>
+        {% else %}
+            
+            {% if perguntas %}
+            <!-- Barra de Progresso Dinâmica -->
+            <div class="mb-4 text-center">
+                <span id="progress-text" class="text-muted fw-bold small text-uppercase" style="letter-spacing: 1px;">Questão 1 de {{ perguntas|length }}</span>
+                <div class="progress mt-2 shadow-sm" style="height: 10px; border-radius: 10px;">
+                    <div id="progress-bar" class="progress-bar" style="background-color: var(--brand-green); width: 0%; transition: width 0.4s ease;"></div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulário da Prova -->
+            <form id="quiz-form" method="POST" action="{% url 'responder_atividade' atividade.id %}">
+                {% csrf_token %}
+                
+                {% for pergunta in perguntas %}
+                    <!-- CAIXA DA PERGUNTA (Isolada pela classe 'question-step') -->
+                    <div class="question-step" id="step-{{ forloop.counter0 }}" style="display: none;">
+                        <div class="card-custom p-4 mb-4 shadow-sm border-0">
+                            <h5 class="fw-bold mb-4" style="line-height: 1.5;">
+                                <span class="badge bg-success me-2 fs-6 rounded-circle p-2 px-3">{{ forloop.counter }}</span> 
+                                {{ pergunta.enunciado }}
+                            </h5>
+                            
+                            <!-- Imagem de apoio (se houver) -->
+                            {% if pergunta.imagem_apoio %}
+                                <div class="mb-4 text-center">
+                                    <img src="{{ pergunta.imagem_apoio.url }}" alt="Imagem da questão" class="img-fluid rounded border" style="max-height: 250px;">
+                                </div>
+                            {% endif %}
+
+                            <!-- SE FOR QUESTÃO DE MÚLTIPLA ESCOLHA -->
+                            {% if pergunta.tipo_pergunta == 'MULTIPLA' %}
+                                <div class="d-flex flex-column gap-2">
+                                    {% for alternativa in pergunta.alternativas.all %}
+                                        <label class="border rounded p-3 d-flex align-items-center gap-3 cursor-pointer hover-bg-light" style="cursor: pointer; transition: all 0.2s;">
+                                            <input class="form-check-input mt-0" type="radio" name="pergunta_{{ pergunta.id }}" value="{{ alternativa.id }}" required style="transform: scale(1.2);">
+                                            <span class="text-dark">{{ alternativa.texto }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+
+                            <!-- SE FOR QUESTÃO DE ASSOCIAÇÃO (LIGAR COLUNAS) -->
+                            {% elif pergunta.tipo_pergunta == 'ASSOC' %}
+                                <div class="bg-light p-3 rounded border">
+                                    <div class="row g-2 fw-bold text-muted small text-center mb-2 d-none d-md-flex">
+                                        <div class="col-5">COLUNA A</div>
+                                        <div class="col-2"></div>
+                                        <div class="col-5">COLUNA B</div>
+                                    </div>
+                                    
+                                    {% for item in pergunta.itens_associacao.all %}
+                                    <div class="row g-2 align-items-center mb-3">
+                                        <div class="col-md-5">
+                                            <div class="bg-white border rounded p-2 text-center shadow-sm fw-semibold" style="min-height: 44px; display: flex; align-items: center; justify-content: center;">
+                                                {{ item.coluna_a }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 text-center d-none d-md-block text-success">
+                                            <i class="bi bi-arrow-right-circle-fill fs-5"></i>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <select class="form-select border-success-subtle shadow-sm" name="assoc_{{ pergunta.id }}_{{ item.id }}" required style="min-height: 44px;">
+                                                <option value="" selected disabled>Selecione o par correto...</option>
+                                                {% for opcao in pergunta.opcoes_embaralhadas %}
+                                                    <option value="{{ opcao }}">{{ opcao }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-warning">Nenhuma pergunta cadastrada para esta atividade ainda.</div>
+                {% endfor %}
+
+                <!-- AVISO DE ERRO PROFISSIONAL -->
+                <div id="aviso-erro" class="alert alert-danger align-items-center shadow-sm mb-4" style="display: none; border-radius: 12px; border-left: 5px solid #dc3545;">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-danger">Resposta Obrigatória</h6>
+                        <span class="small text-dark">Por favor, responda a questão atual antes de avançar.</span>
+                    </div>
+                </div>
+
+                <!-- BOTÕES DE NAVEGAÇÃO -->
+                {% if perguntas %}
+                    <div class="d-flex justify-content-between align-items-center mt-2 mb-5">
+                        <button type="button" id="btn-prev" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Anterior
+                        </button>
+                        
+                        <button type="button" id="btn-next" class="btn text-white rounded-pill px-5 fw-bold shadow-sm" style="background-color: var(--brand-green);">
+                            Próxima <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                        
+                        <button type="button" id="btn-submit" class="btn text-white rounded-pill px-5 fw-bold shadow-sm" style="background-color: var(--brand-green); display: none;">
+                            Finalizar e Enviar <i class="bi bi-check2-circle ms-1"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </form>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- IMPORTAÇÃO DO ARQUIVO JAVASCRIPT EXTERNO       -->
+<!-- O "?v=1" evita problemas com cache do navegador-->
+<!-- ============================================== -->
+<script src="{% static 'js/quiz.js' %}?v=1"></script>
+
+{% endblock %}

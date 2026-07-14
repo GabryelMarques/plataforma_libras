@@ -80,11 +80,18 @@
                     </span>
                 </div>
 
-                <!-- Botão de Ação -->
-                <div class="px-2">
-                <a href="{% url 'assistir_aula' aula.id %}" class="btn {% if aula.id in aulas_concluidas_ids %}btn-light text-success{% else %}btn-outline-success{% endif %} rounded-pill px-4 fw-semibold">
-                    {% if aula.id in aulas_concluidas_ids %}Rever Aula{% else %}Assistir{% endif %}
-                </a>
+                <!-- Botão de Ação da Videoaula -->
+                <div class="px-2 text-center">
+                    {% if not fez_pre_teste %}
+                        <button class="btn btn-light text-muted rounded-pill px-4 fw-semibold border" disabled>
+                            <i class="bi bi-lock-fill"></i> Bloqueada
+                        </button>
+                        <div class="small text-danger mt-1" style="font-size: 0.7rem;">Faça o pré-teste</div>
+                    {% else %}
+                        <a href="{% url 'assistir_aula' aula.id %}" class="btn {% if aula.id in aulas_concluidas_ids %}btn-light text-success{% else %}btn-outline-success{% endif %} rounded-pill px-4 fw-semibold">
+                            {% if aula.id in aulas_concluidas_ids %}Rever Aula{% else %}Assistir{% endif %}
+                        </a>
+                    {% endif %}
                 </div>
             </div>
             {% empty %}
@@ -113,10 +120,38 @@
                     <h6 class="fw-bold mb-0" style="line-height: 1.4;">{{ atividade.titulo }}</h6>
                 </div>
                 <p class="text-muted small mb-4">{{ atividade.descricao }}</p>
-                <!-- Botão para o Pós/Pré teste ou Quiz -->
-                <a href="#" class="btn w-100 fw-semibold" style="background-color: var(--brand-green); color: white; border-radius: 8px;">
-                    Acessar Atividade
-                </a>
+                                
+                <!-- Lógica Condicional de Travas para Atividades -->
+                {% if atividade.id in atividades_concluidas_ids %}
+                    
+                    <!-- Já fez a atividade -->
+                    <button class="btn btn-light text-success border w-100 fw-semibold" disabled>
+                        <i class="bi bi-check2-all fs-5 me-1"></i> Concluída
+                    </button>
+
+                {% elif atividade.tipo == 'POS' and not assistiu_todas_aulas %}
+                    
+                    <!-- Pós-teste bloqueado -->
+                    <button class="btn btn-light text-muted border w-100 fw-semibold d-flex align-items-center justify-content-center flex-column py-2" disabled style="font-size: 0.9rem;">
+                        <span><i class="bi bi-lock-fill"></i> Pós-teste Bloqueado</span>
+                        <span style="font-size: 0.7rem; font-weight: normal;">Assista a todas as aulas primeiro</span>
+                    </button>
+
+                {% elif atividade.tipo == 'EXERCICIO' and not fez_pre_teste %}
+                    
+                    <!-- Exercício bloqueado -->
+                    <button class="btn btn-light text-muted border w-100 fw-semibold d-flex align-items-center justify-content-center" disabled>
+                        <i class="bi bi-lock-fill me-1"></i> Bloqueado
+                    </button>
+
+                {% else %}
+                    
+                    <!-- Liberado para responder -->
+                    <a href="{% url 'responder_atividade' atividade.id %}" class="btn w-100 fw-semibold" style="background-color: var(--brand-green); color: white; border-radius: 8px;">
+                        Acessar {{ atividade.get_tipo_display }}
+                    </a>
+
+                {% endif %}
             </div>
             {% empty %}
             <!-- Mensagem se não houver atividades -->

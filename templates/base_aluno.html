@@ -43,6 +43,25 @@
             <a href="{% url 'meu_perfil' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'meu_perfil' %}active{% endif %}">
                 <i class="bi bi-person"></i> Meu Perfil
             </a>
+
+                {% if request.user.is_staff %}
+                    <hr class="text-white opacity-25 my-2">
+                    <p class="text-white opacity-50 small fw-bold text-uppercase mb-1 px-3" style="font-size: 0.7rem;">Gestão</p>
+                    
+                    <!-- Link Painel Pesquisa -->
+                    <a href="{% url 'painel_pesquisador' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'painel_pesquisador' %}active{% endif %}" {% if request.resolver_match.url_name == 'painel_pesquisador' %}style="border-left: 3px solid #f59e0b;"{% endif %}>
+                        <i class="bi bi-bar-chart-fill" {% if request.resolver_match.url_name == 'painel_pesquisador' %}style="color: #f59e0b;"{% endif %}></i> Dashboard
+                    </a>
+                    
+                    <!-- NOVO: Link Gestão de Módulos -->
+                    <a href="{% url 'gestao_modulos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'gestao_modulos' %}active{% endif %}" {% if request.resolver_match.url_name == 'gestao_modulos' %}style="border-left: 3px solid #f59e0b;"{% endif %}>
+                        <i class="bi bi-box-seam-fill" {% if request.resolver_match.url_name == 'gestao_modulos' %}style="color: #f59e0b;"{% endif %}></i> Módulos
+                    </a>
+
+                    <a href="/admin/" target="_blank" class="nav-link-custom text-white opacity-75 mt-2">
+                        <i class="bi bi-database-fill-gear"></i> Django Admin <i class="bi bi-box-arrow-up-right ms-auto small"></i>
+                    </a>
+                {% endif %}
         </nav>
 
         <div class="sidebar-footer">
