@@ -1,0 +1,90 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'gestao_videoaulas' %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <span class="badge bg-warning text-dark px-2 py-1 rounded-pill mb-1" style="font-size: 0.7rem;">Modo Edição</span>
+        <h3 class="fw-bold mb-0">Editar: {{ aula.titulo }}</h3>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-custom bg-white p-4 p-md-5 border shadow-sm">
+            
+            <form method="POST" action="{% url 'editar_videoaula' aula.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-7 mb-4 mb-md-0">
+                        <label for="titulo" class="form-label fw-bold text-dark">Título da Aula <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control bg-light border-0" id="titulo" name="titulo" value="{{ aula.titulo }}" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="modulo" class="form-label fw-bold text-dark">Vincular ao Módulo <span class="text-danger">*</span></label>
+                        <select class="form-select bg-light border-0" id="modulo" name="modulo" required>
+                            {% for modulo in modulos %}
+                                <!-- O 'selected' garante que o módulo atual venha marcado -->
+                                <option value="{{ modulo.id }}" {% if modulo.id == aula.modulo.id %}selected{% endif %}>
+                                    {{ modulo.titulo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="descricao" class="form-label fw-bold text-dark">Descrição da Aula <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light border-0" id="descricao" name="descricao" rows="4" required>{{ aula.descricao }}</textarea>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="ordem" class="form-label fw-bold text-dark">Ordem de Exibição <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control bg-light border-0" id="ordem" name="ordem" value="{{ aula.ordem }}" min="1" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="duracao" class="form-label fw-bold text-dark">Duração (HH:MM:SS) <span class="text-danger">*</span></label>
+                        <input type="time" step="1" class="form-control bg-light border-0" id="duracao" name="duracao" value="{{ aula.duracao }}" required>
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="miniatura" class="form-label fw-bold text-dark">Nova Miniatura</label>
+                        <input type="file" class="form-control bg-light border-0" id="miniatura" name="miniatura" accept="image/*">
+                        {% if aula.miniatura %}
+                            <div class="form-text small text-success mt-2">
+                                <i class="bi bi-image"></i> Já possui miniatura: <a href="{{ aula.miniatura.url }}" target="_blank">Ver atual</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="arquivo_video" class="form-label fw-bold text-dark">Novo Arquivo de Vídeo</label>
+                        <input type="file" class="form-control bg-light border-0" id="arquivo_video" name="arquivo_video" accept="video/*">
+                        {% if aula.arquivo_video %}
+                            <div class="form-text small text-success mt-2">
+                                <i class="bi bi-film"></i> Já possui vídeo: <a href="{{ aula.arquivo_video.url }}" target="_blank">Ver atual</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
+                    <a href="{% url 'gestao_videoaulas' %}" class="btn btn-light px-4 fw-semibold rounded-pill border">Cancelar</a>
+                    <button type="submit" class="btn text-white px-5 fw-bold rounded-pill shadow-sm" style="background-color: var(--brand-green);">
+                        Atualizar Aula <i class="bi bi-arrow-clockwise ms-1"></i>
+                    </button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

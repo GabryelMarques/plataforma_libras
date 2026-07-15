@@ -57,6 +57,14 @@
                     <a href="{% url 'gestao_modulos' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'gestao_modulos' %}active{% endif %}" {% if request.resolver_match.url_name == 'gestao_modulos' %}style="border-left: 3px solid #f59e0b;"{% endif %}>
                         <i class="bi bi-box-seam-fill" {% if request.resolver_match.url_name == 'gestao_modulos' %}style="color: #f59e0b;"{% endif %}></i> Módulos
                     </a>
+                    <!-- NOVO: Link Gestão de Videoaulas -->
+                    <a href="{% url 'gestao_videoaulas' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'gestao_videoaulas' or request.resolver_match.url_name == 'criar_videoaula' or request.resolver_match.url_name == 'editar_videoaula' %}active{% endif %}" {% if 'gestao/videoaulas' in request.path %}style="border-left: 3px solid #f59e0b;"{% endif %}>
+                        <i class="bi bi-play-btn-fill" {% if 'gestao/videoaulas' in request.path %}style="color: #f59e0b;"{% endif %}></i> Videoaulas
+                    </a>
+                    <!-- NOVO: Link Gestão de Atividades -->
+                <a href="{% url 'gestao_atividades' %}" class="nav-link-custom {% if 'gestao/atividades' in request.path %}active{% endif %}" {% if 'gestao/atividades' in request.path %}style="border-left: 3px solid #f59e0b;"{% endif %}>
+                    <i class="bi bi-clipboard-check-fill" {% if 'gestao/atividades' in request.path %}style="color: #f59e0b;"{% endif %}></i> Atividades
+                </a>
 
                     <a href="/admin/" target="_blank" class="nav-link-custom text-white opacity-75 mt-2">
                         <i class="bi bi-database-fill-gear"></i> Django Admin <i class="bi bi-box-arrow-up-right ms-auto small"></i>

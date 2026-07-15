@@ -1,0 +1,67 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'gestao_atividades' %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <span class="badge bg-warning text-dark px-2 py-1 rounded-pill mb-1" style="font-size: 0.7rem;">Modo Edição</span>
+        <h3 class="fw-bold mb-0">Editar: {{ atividade.titulo }}</h3>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-custom bg-white p-4 p-md-5 border shadow-sm">
+            
+            <form method="POST" action="{% url 'editar_atividade' atividade.id %}">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="titulo" class="form-label fw-bold text-dark">Título da Avaliação <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg bg-light border-0" id="titulo" name="titulo" value="{{ atividade.titulo }}" required>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="modulo" class="form-label fw-bold text-dark">Vincular ao Módulo <span class="text-danger">*</span></label>
+                        <select class="form-select bg-light border-0" id="modulo" name="modulo" required>
+                            {% for modulo in modulos %}
+                                <option value="{{ modulo.id }}" {% if modulo.id == atividade.modulo.id %}selected{% endif %}>
+                                    {{ modulo.titulo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="tipo" class="form-label fw-bold text-dark">Tipo de Avaliação <span class="text-danger">*</span></label>
+                        <select class="form-select bg-light border-0" id="tipo" name="tipo" required>
+                            {% for valor, nome in tipos_atividade %}
+                                <option value="{{ valor }}" {% if valor == atividade.tipo %}selected{% endif %}>
+                                    {{ nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="descricao" class="form-label fw-bold text-dark">Descrição / Instruções <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light border-0" id="descricao" name="descricao" rows="4" required>{{ atividade.descricao }}</textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-4 border-top">
+                    <a href="{% url 'gestao_atividades' %}" class="btn btn-light px-4 fw-semibold rounded-pill border">Cancelar</a>
+                    <button type="submit" class="btn text-white px-5 fw-bold rounded-pill shadow-sm" style="background-color: var(--brand-green);">
+                        Atualizar Atividade <i class="bi bi-arrow-clockwise ms-1"></i>
+                    </button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

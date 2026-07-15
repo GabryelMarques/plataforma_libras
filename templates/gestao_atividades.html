@@ -1,0 +1,125 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h3 class="fw-bold mb-1">Central de Avaliações</h3>
+        <p class="text-muted mb-0">Gerencie os Pré-testes e Pós-testes vinculados aos módulos da pesquisa.</p>
+    </div>
+    
+    <a href="{% url 'criar_atividade' %}" class="btn text-white rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center gap-2" style="background-color: var(--brand-green);">
+        <i class="bi bi-plus-lg"></i> Nova Atividade
+    </a>
+</div>
+
+<div class="card-custom bg-white p-0 overflow-hidden border shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase" style="letter-spacing: 0.5px;">
+                <tr>
+                    <th class="ps-4 py-3 border-0">Título da Atividade</th>
+                    <th class="py-3 border-0">Módulo Vinculado</th>
+                    <th class="py-3 border-0 text-center">Tipo de Avaliação</th>
+                    <th class="py-3 border-0 text-center">Questões</th>
+                    <th class="pe-4 py-3 border-0 text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="border-top-0">
+                {% for atividade in atividades %}
+                <tr>
+                    <td class="ps-4 py-4">
+                        <div class="fw-bold text-dark fs-6">{{ atividade.titulo }}</div>
+                        <div class="text-muted small text-truncate" style="max-width: 250px;">{{ atividade.descricao }}</div>
+                    </td>
+                    
+                    <td class="py-4">
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                            <i class="bi bi-box-seam text-muted me-1"></i> {{ atividade.modulo.titulo }}
+                        </span>
+                    </td>
+                    
+                    <td class="py-4 text-center">
+                        {% if atividade.tipo == 'PRE' %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                                <i class="bi bi-door-open-fill me-1"></i> Pré-teste
+                            </span>
+                        {% elif atividade.tipo == 'POS' %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle px-3 py-2 rounded-pill">
+                                <i class="bi bi-check2-circle me-1"></i> Pós-teste
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle px-3 py-2 rounded-pill">
+                                <i class="bi bi-journal-text me-1"></i> Exercício
+                            </span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-4 text-center">
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                            <!-- Mais pra frente vamos colocar o count() real aqui -->
+                            <i class="bi bi-list-task text-muted me-1"></i> {{ atividade.perguntas.count }}
+                        </span>
+                    </td>
+                    
+                    <td class="pe-4 py-4 text-end">
+                    <div class="btn-group shadow-sm">
+                        <a href="{% url 'gerenciar_perguntas' atividade.id %}" class="btn btn-light border text-primary hover-bg-light fw-bold" title="Gerenciar Perguntas" style="font-size: 0.85rem;">
+                            <i class="bi bi-card-checklist me-1"></i> Questões
+                        </a>
+                        
+                        <!-- Link real para Editar -->
+                        <a href="{% url 'editar_atividade' atividade.id %}" class="btn btn-light border text-muted hover-bg-light" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        
+                        <!-- Botão que abre o Modal de Exclusão -->
+                        <button type="button" class="btn btn-light border text-danger hover-bg-light" data-bs-toggle="modal" data-bs-target="#modalExcluirAtv{{ atividade.id }}" title="Excluir" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+
+                    <!-- Modal de Exclusão da Atividade -->
+                    <div class="modal fade" id="modalExcluirAtv{{ atividade.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered text-start">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-body text-center p-4">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger mb-3" style="font-size: 3rem;"></i>
+                                    <h4 class="fw-bold mb-2">Excluir Avaliação?</h4>
+                                    <p class="text-muted mb-4">Tem certeza que deseja apagar a avaliação <strong>{{ atividade.titulo }}</strong>?</p>
+                                    
+                                    <div class="alert alert-danger small text-start mb-4" style="border-radius: 8px;">
+                                        <i class="bi bi-info-circle-fill me-1"></i> Esta ação apagará permanentemente TODAS as questões e alternativas vinculadas a este teste!
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold border" data-bs-dismiss="modal">Cancelar</button>
+                                        <form action="{% url 'excluir_atividade' atividade.id %}" method="POST" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Sim, Excluir</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-clipboard-x fs-1 d-block mb-3 opacity-25"></i>
+                        <h5 class="fw-bold">Nenhuma atividade cadastrada</h5>
+                        <p class="small mb-0">Crie os Pré-testes e Pós-testes clicando no botão verde acima.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .hover-bg-light:hover { background-color: #f8fafc; }
+</style>
+{% endblock %}

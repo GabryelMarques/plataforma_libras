@@ -1,0 +1,101 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'gestao_atividades' %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div class="flex-grow-1">
+        <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill mb-1" style="font-size: 0.7rem;">
+            {{ atividade.get_tipo_display }} • {{ atividade.modulo.titulo }}
+        </span>
+        <h3 class="fw-bold mb-0">Questões: {{ atividade.titulo }}</h3>
+    </div>
+    
+    <!-- Botão Dropdown para escolher o tipo de questão -->
+    <div class="dropdown">
+        <button class="btn text-white rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center gap-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: var(--brand-green);">
+            <i class="bi bi-plus-lg"></i> Nova Questão
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+            <!-- Os links estão vazios (#) por enquanto, faremos no próximo passo -->
+            <li><a class="dropdown-item py-2 fw-semibold" href="#"><i class="bi bi-list-check text-primary me-2"></i> Múltipla Escolha</a></li>
+            <li><a class="dropdown-item py-2 fw-semibold" href="#"><i class="bi bi-bezier2 text-warning me-2"></i> Associação (Colunas)</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="card-custom bg-white p-0 overflow-hidden border shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small text-uppercase" style="letter-spacing: 0.5px;">
+                <tr>
+                    <th class="ps-4 py-3 border-0" style="width: 80px;">Ordem</th>
+                    <th class="py-3 border-0">Enunciado da Questão</th>
+                    <th class="py-3 border-0 text-center">Tipo</th>
+                    <th class="pe-4 py-3 border-0 text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="border-top-0">
+                {% for pergunta in perguntas %}
+                <tr>
+                    <td class="ps-4 py-4">
+                        <div class="bg-light text-dark fw-bold rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+                            Q{{ pergunta.ordem }}
+                        </div>
+                    </td>
+                    
+                    <td class="py-4">
+                        <div class="fw-bold text-dark mb-1">{{ pergunta.enunciado|truncatechars:80 }}</div>
+                        {% if pergunta.imagem_apoio %}
+                            <span class="badge bg-light text-muted border px-2 py-1 rounded-pill" style="font-size: 0.7rem;">
+                                <i class="bi bi-image me-1"></i> Contém Imagem
+                            </span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-4 text-center">
+                        {% if pergunta.tipo_pergunta == 'MULTIPLA' %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                                <i class="bi bi-list-check me-1"></i> Múltipla Escolha
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle px-3 py-2 rounded-pill">
+                                <i class="bi bi-bezier2 me-1"></i> Associação
+                            </span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="pe-4 py-4 text-end">
+                        <div class="btn-group shadow-sm">
+                            <a href="#" class="btn btn-light border text-primary hover-bg-light fw-bold" title="Configurar Alternativas/Itens" style="font-size: 0.85rem;">
+                                <i class="bi bi-gear-fill me-1"></i> Configurar
+                            </a>
+                            <a href="#" class="btn btn-light border text-muted hover-bg-light" title="Editar Questão">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <button type="button" class="btn btn-light border text-danger hover-bg-light" title="Excluir" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="bi bi-patch-question fs-1 d-block mb-3 opacity-25"></i>
+                        <h5 class="fw-bold">Nenhuma questão cadastrada</h5>
+                        <p class="small mb-0">Clique no botão verde "Nova Questão" para adicionar perguntas a esta avaliação.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .hover-bg-light:hover { background-color: #f8fafc; }
+</style>
+{% endblock %}

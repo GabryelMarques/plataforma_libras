@@ -19,6 +19,8 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from core.views import home, dashboard, detalhe_modulo, assistir_aula, responder_atividade, painel_pesquisador, exportar_dados_csv, gestao_modulos, criar_modulo, editar_modulo, excluir_modulo
+from core.views import gestao_videoaulas, criar_videoaula, editar_videoaula, excluir_videoaula, gestao_atividades
+from core.views import criar_atividade, editar_atividade, excluir_atividade, gerenciar_perguntas
 from accounts.views import cadastro, fazer_login, sair, meu_perfil
 
 
@@ -39,7 +41,15 @@ urlpatterns = [
     path('criar-modulo/', criar_modulo, name='criar_modulo'),
     path('gestao/modulos/<int:modulo_id>/editar/', editar_modulo, name='editar_modulo'),
     path('gestao/modulos/<int:modulo_id>/excluir/', excluir_modulo, name='excluir_modulo'), 
-
+    path('gestao/videoaulas/', gestao_videoaulas, name='gestao_videoaulas'),        
+    path('criar-videoaula/', criar_videoaula, name='criar_videoaula'),
+    path('gestao/videoaulas/<int:aula_id>/editar/', editar_videoaula, name='editar_videoaula'),
+    path('gestao/videoaulas/<int:aula_id>/excluir/', excluir_videoaula, name='excluir_videoaula'),
+    path('gestao/atividades/', gestao_atividades, name='gestao_atividades'),
+    path('criar-atividade/', criar_atividade, name='criar_atividade'),
+    path('gestao/atividades/<int:atividade_id>/editar/', editar_atividade, name='editar_atividade'),
+    path('gestao/atividades/<int:atividade_id>/excluir/', excluir_atividade, name='excluir_atividade'),
+    path('gestao/atividades/<int:atividade_id>/perguntas/', gerenciar_perguntas, name='gerenciar_perguntas'),
 ]
 
 if settings.DEBUG:

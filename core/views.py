@@ -1,5 +1,6 @@
 import random 
 import csv
+from datetime import timedelta
 from django.http import HttpResponse
 from modulos.models import Modulo
 from django.shortcuts import render
@@ -345,3 +346,162 @@ def excluir_modulo(request, modulo_id):
         modulo.delete()
         
     return redirect('gestao_modulos')
+
+from modulos.models import Modulo, Videoaula # Atualize seus imports no topo
+
+# ==========================================
+# GESTÃO DE VIDEOAULAS
+# ==========================================
+
+@staff_member_required(login_url='/login/')
+def gestao_videoaulas(request):
+    # Puxa todas as videoaulas, trazendo junto a informação do módulo para não pesar o banco
+    videoaulas = Videoaula.objects.select_related('modulo').order_by('modulo__ordem', 'ordem')
+    return render(request, 'gestao_videoaulas.html', {'videoaulas': videoaulas})
+
+@staff_member_required(login_url='/login/')
+def criar_videoaula(request):
+    modulos = Modulo.objects.all().order_by('ordem')
+    
+    if request.method == 'POST':
+        modulo_id = request.POST.get('modulo')
+        modulo = get_object_or_404(Modulo, id=modulo_id)
+        
+        # Converte a string "HH:MM:SS" ou "HH:MM" para um objeto timedelta que o banco aceita
+        duracao_str = request.POST.get('duracao')
+        duracao_obj = None
+        if duracao_str:
+            partes = duracao_str.split(':')
+            if len(partes) == 3:
+                duracao_obj = timedelta(hours=int(partes[0]), minutes=int(partes[1]), seconds=int(partes[2]))
+            elif len(partes) == 2:
+                duracao_obj = timedelta(hours=int(partes[0]), minutes=int(partes[1]))
+        
+        Videoaula.objects.create(
+            titulo=request.POST.get('titulo'),
+            descricao=request.POST.get('descricao'),
+            modulo=modulo,
+            ordem=request.POST.get('ordem', 1),
+            duracao=duracao_obj, # Passamos o objeto convertido
+            thumbnail=request.FILES.get('miniatura'), 
+            video=request.FILES.get('arquivo_video')  
+        )
+        return redirect('gestao_videoaulas')
+        
+    return render(request, 'criar_videoaula.html', {'modulos': modulos})
+
+
+@staff_member_required(login_url='/login/')
+def editar_videoaula(request, aula_id):
+    aula = get_object_or_404(Videoaula, id=aula_id)
+    modulos = Modulo.objects.all().order_by('ordem')
+    
+    if request.method == 'POST':
+        modulo_id = request.POST.get('modulo')
+        aula.modulo = get_object_or_404(Modulo, id=modulo_id)
+        aula.titulo = request.POST.get('titulo')
+        aula.descricao = request.POST.get('descricao')
+        aula.ordem = request.POST.get('ordem', 1)
+        
+        # Converte a string da edição para timedelta
+        duracao_str = request.POST.get('duracao')
+        if duracao_str:
+            partes = duracao_str.split(':')
+            if len(partes) == 3:
+                aula.duracao = timedelta(hours=int(partes[0]), minutes=int(partes[1]), seconds=int(partes[2]))
+            elif len(partes) == 2:
+                aula.duracao = timedelta(hours=int(partes[0]), minutes=int(partes[1]))
+        
+        if 'miniatura' in request.FILES:
+            aula.thumbnail = request.FILES.get('miniatura')
+            
+        if 'arquivo_video' in request.FILES:
+            aula.video = request.FILES.get('arquivo_video')
+            
+        aula.save()
+        return redirect('gestao_videoaulas')
+        
+    return render(request, 'editar_videoaula.html', {'aula': aula, 'modulos': modulos})
+@staff_member_required(login_url='/login/')
+def excluir_videoaula(request, aula_id):
+    aula = get_object_or_404(Videoaula, id=aula_id)
+    if request.method == 'POST':
+        aula.delete()
+    return redirect('gestao_videoaulas')
+
+from modulos.models import Modulo, Videoaula, Atividade # <-- Adicione Atividade aqui
+
+# ==========================================
+# GESTÃO DE ATIVIDADES (PRÉ E PÓS TESTES)
+# ==========================================
+
+@staff_member_required(login_url='/login/')
+def gestao_atividades(request):
+    # Puxa todas as atividades, ordenadas pela ordem do módulo e depois pelo tipo
+    atividades = Atividade.objects.select_related('modulo').order_by('modulo__ordem', 'tipo')
+    return render(request, 'gestao_atividades.html', {'atividades': atividades})
+
+@staff_member_required(login_url='/login/')
+def criar_atividade(request):
+    modulos = Modulo.objects.all().order_by('ordem')
+    # Puxa as opções ('PRE', 'Pré-teste'), etc., definidas no models.py
+    tipos_atividade = Atividade.TIPO_CHOICES 
+    
+    if request.method == 'POST':
+        modulo_id = request.POST.get('modulo')
+        modulo = get_object_or_404(Modulo, id=modulo_id)
+        
+        Atividade.objects.create(
+            titulo=request.POST.get('titulo'),
+            descricao=request.POST.get('descricao'),
+            modulo=modulo,
+            tipo=request.POST.get('tipo')
+        )
+        return redirect('gestao_atividades')
+        
+    return render(request, 'criar_atividade.html', {'modulos': modulos, 'tipos_atividade': tipos_atividade})
+
+
+@staff_member_required(login_url='/login/')
+def editar_atividade(request, atividade_id):
+    atividade = get_object_or_404(Atividade, id=atividade_id)
+    modulos = Modulo.objects.all().order_by('ordem')
+    tipos_atividade = Atividade.TIPO_CHOICES
+    
+    if request.method == 'POST':
+        modulo_id = request.POST.get('modulo')
+        atividade.modulo = get_object_or_404(Modulo, id=modulo_id)
+        atividade.titulo = request.POST.get('titulo')
+        atividade.descricao = request.POST.get('descricao')
+        atividade.tipo = request.POST.get('tipo')
+        
+        atividade.save()
+        return redirect('gestao_atividades')
+        
+    return render(request, 'editar_atividade.html', {'atividade': atividade, 'modulos': modulos, 'tipos_atividade': tipos_atividade})
+
+
+@staff_member_required(login_url='/login/')
+def excluir_atividade(request, atividade_id):
+    atividade = get_object_or_404(Atividade, id=atividade_id)
+    if request.method == 'POST':
+        atividade.delete()
+    return redirect('gestao_atividades')
+
+from modulos.models import Modulo, Videoaula, Atividade, Pergunta # <-- Adicione Pergunta
+
+# ==========================================
+# GESTÃO DE PERGUNTAS
+# ==========================================
+
+@staff_member_required(login_url='/login/')
+def gerenciar_perguntas(request, atividade_id):
+    atividade = get_object_or_404(Atividade, id=atividade_id)
+    # Puxa as perguntas apenas desta atividade, ordenadas pela numeração
+    perguntas = atividade.perguntas.all().order_by('ordem')
+    
+    context = {
+        'atividade': atividade,
+        'perguntas': perguntas
+    }
+    return render(request, 'gerenciar_perguntas.html', context)

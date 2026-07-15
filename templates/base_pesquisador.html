@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Administrativo - Pesquisa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --brand-green: #15803d; /* Verde escuro das imagens */
+            --bg-light: #f8fafc;
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR ESTILO IMAGEM */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .sidebar-logo {
+            padding: 1.5rem;
+            border-bottom: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo-icon {
+            background-color: var(--brand-green);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .nav-menu {
+            padding: 1rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item-admin {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1.5rem;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item-admin:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .nav-item-admin.active {
+            background-color: #ecfdf5; /* Fundo verde clarinho */
+            color: var(--brand-green);
+            border-left: 3px solid var(--brand-green);
+            font-weight: 600;
+        }
+
+        /* TOPBAR ESTILO IMAGEM */
+        .admin-topbar {
+            margin-left: var(--sidebar-width);
+            height: 70px;
+            background-color: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .admin-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* COMPONENTES REUTILIZÁVEIS */
+        .card-custom {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            background: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <nav class="admin-sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            <div>
+                <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.1rem;">UFT Libras</h5>
+                <small class="text-muted" style="font-size: 0.75rem;">Portal Administrativo</small>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <a href="{% url 'painel_pesquisador' %}" class="nav-item-admin {% if request.resolver_match.url_name == 'painel_pesquisador' %}active{% endif %}">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+            <a href="#" class="nav-item-admin">
+                <i class="bi bi-box"></i> Módulos
+            </a>
+            <a href="#" class="nav-item-admin">
+                <i class="bi bi-play-btn"></i> Videoaulas
+            </a>
+            <a href="#" class="nav-item-admin">
+                <i class="bi bi-clipboard-check"></i> Atividades
+            </a>
+            <a href="#" class="nav-item-admin">
+                <i class="bi bi-question-square"></i> Pré/Pós-Testes
+            </a>
+            <a href="#" class="nav-item-admin">
+                <i class="bi bi-people"></i> Usuários
+            </a>
+            <a href="#" class="nav-item-admin">
+                <i class="bi bi-bar-chart"></i> Relatórios
+            </a>
+        </div>
+
+        <div class="mt-auto pb-4">
+            <a href="{% url 'dashboard' %}" class="nav-item-admin text-muted">
+                <i class="bi bi-arrow-left-circle"></i> Voltar ao App Aluno
+            </a>
+            <a href="/admin/" target="_blank" class="nav-item-admin text-muted">
+                <i class="bi bi-gear"></i> Configurações (BD)
+            </a>
+        </div>
+    </nav>
+
+    <!-- BARRA SUPERIOR (TOPBAR) -->
+    <header class="admin-topbar">
+        <div class="d-flex align-items-center bg-light rounded-pill px-3 py-2" style="width: 300px; border: 1px solid #e2e8f0;">
+            <i class="bi bi-search text-muted me-2"></i>
+            <input type="text" class="border-0 bg-transparent w-100 outline-none shadow-none" placeholder="Pesquisar..." style="outline: none;">
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <button class="btn btn-link text-dark p-0 position-relative">
+                <i class="bi bi-bell fs-5"></i>
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+            </button>
+            <div class="d-flex align-items-center gap-2 border-start ps-4">
+                <div class="text-end d-none d-md-block">
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ request.user.nome }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Administrador</div>
+                </div>
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px;">
+                    {{ request.user.nome|make_list|first|upper }}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ÁREA DE CONTEÚDO DINÂMICO -->
+    <main class="admin-content">
+        {% block admin_content %}
+        {% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
