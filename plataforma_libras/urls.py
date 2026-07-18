@@ -23,9 +23,7 @@ from core.views import home, dashboard, detalhe_modulo, assistir_aula, responder
 from core.views import gestao_videoaulas, criar_videoaula, editar_videoaula, excluir_videoaula, gestao_atividades
 from core.views import criar_atividade, editar_atividade, excluir_atividade, gerenciar_perguntas
 from core.views import criar_pergunta, configurar_pergunta, excluir_alternativa, excluir_item_associacao
-from core.views import editar_pergunta, excluir_pergunta, busca_global_ajax, detalhe_participante
-
-
+from core.views import editar_pergunta, excluir_pergunta, busca_global_ajax, detalhe_participante, tcle_aceite
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -61,6 +59,8 @@ urlpatterns = [
     path('gestao/perguntas/<int:pergunta_id>/excluir/', excluir_pergunta, name='excluir_pergunta'),
     path('pesquisa/ajax/', busca_global_ajax, name='busca_global_ajax'),
     path('pesquisa/participante/<int:aluno_id>/', detalhe_participante, name='detalhe_participante'),
+    path('tcle/', tcle_aceite, name='tcle_aceite'),
+
 ]
 
 if settings.DEBUG:

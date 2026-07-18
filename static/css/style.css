@@ -258,3 +258,27 @@ footer {
     .steps-section { margin: 0; padding: 40px 20px; border-radius: 0; }
     .pesquisa-card { padding: 32px; }
 }
+
+
+/* style.css */
+
+/* ... (seus outros códigos anteriores) ... */
+
+.hero-section {
+    position: relative;
+    padding: 80px 0;
+    /* O navegador vai procurar a imagem na pasta 'img' que está ao lado da pasta 'css' */
+    background: linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), 
+                url('../img/background-evolucao.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+.video-container {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    background-color: #0f172a;
+}

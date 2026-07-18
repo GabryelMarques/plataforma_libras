@@ -29,3 +29,12 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return self.nome if self.nome else self.email
+    
+class TCLEAceite(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='tcle_aceite')
+    aceito = models.BooleanField(default=False)
+    data_aceite = models.DateTimeField(auto_now_add=True)
+    ip_aceite = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"TCLE: {self.usuario.nome} - {self.aceito}"

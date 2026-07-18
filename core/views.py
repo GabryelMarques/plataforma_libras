@@ -16,6 +16,18 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.urls import reverse
 
+from django.shortcuts import redirect
+from functools import wraps
+from accounts.models import TCLEAceite
+
+def tcle_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and not request.user.is_staff:
+            if not TCLEAceite.objects.filter(usuario=request.user, aceito=True).exists():
+                return redirect('tcle_aceite')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 def home(request):
     # Busca todos os módulos no banco, ordenados pelo campo 'ordem'
     modulos = Modulo.objects.all().order_by('ordem')
@@ -30,6 +42,7 @@ def home(request):
 
 # O decorador garante que apenas alunos logados acessem esta view
 @login_required(login_url='/login/')
+@tcle_required
 def dashboard(request):
     aluno = request.user
     
@@ -59,6 +72,7 @@ def dashboard(request):
     
     return render(request, 'dashboard.html', context)
 @login_required(login_url='/login/')
+@tcle_required
 def detalhe_modulo(request, modulo_id):
     modulo = get_object_or_404(Modulo, id=modulo_id)
     aulas = modulo.videoaulas.all().order_by('ordem')
@@ -99,6 +113,7 @@ def detalhe_modulo(request, modulo_id):
 
 
 @login_required(login_url='/login/')
+@tcle_required
 def assistir_aula(request, aula_id):
     aula = get_object_or_404(Videoaula, id=aula_id)
     
@@ -121,6 +136,7 @@ def assistir_aula(request, aula_id):
     return render(request, 'assistir_aula.html', context)
 
 @login_required(login_url='/login/')
+@tcle_required
 def responder_atividade(request, atividade_id):
     atividade = get_object_or_404(Atividade, id=atividade_id)
     
@@ -767,3 +783,20 @@ def detalhe_participante(request, aluno_id):
         'tipos_perfil': tipos_perfil,
     }
     return render(request, 'detalhe_participante.html', context)
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
+
+@login_required
+def tcle_aceite(request):
+    if request.method == 'POST':
+        TCLEAceite.objects.create(
+            usuario=request.user,
+            aceito=True,
+            ip_aceite=get_client_ip(request)
+        )
+        return redirect('dashboard') # Redireciona para onde ele deveria ir
+    return render(request, 'tcle.html')
