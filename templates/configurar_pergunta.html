@@ -1,0 +1,121 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'gerenciar_perguntas' atividade.id %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <span class="badge bg-dark bg-opacity-10 text-dark px-2 py-1 rounded-pill mb-1" style="font-size: 0.7rem;">
+            Questão {{ pergunta.ordem }} • {{ pergunta.get_tipo_pergunta_display }}
+        </span>
+        <h3 class="fw-bold mb-0">Configurar Questão</h3>
+    </div>
+</div>
+
+<!-- Enunciado Atual -->
+<div class="card bg-light border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h6 class="text-muted text-uppercase small fw-bold mb-3"><i class="bi bi-chat-square-quote me-2"></i>Enunciado:</h6>
+        <p class="fs-5 mb-0 text-dark">{{ pergunta.enunciado }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- COLUNA DA ESQUERDA: Formulário para Adicionar -->
+    <div class="col-md-5 mb-4 mb-md-0">
+        <div class="card-custom bg-white p-4 border shadow-sm h-100">
+            <h5 class="fw-bold mb-4">Adicionar Novo Item</h5>
+            
+            <form method="POST" action="{% url 'configurar_pergunta' pergunta.id %}">
+                {% csrf_token %}
+                
+                {% if pergunta.tipo_pergunta == 'MULTIPLA' %}
+                    <!-- FORMULÁRIO DE MÚLTIPLA ESCOLHA -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Texto da Alternativa</label>
+                        <input type="text" class="form-control bg-light border-0" name="texto" required placeholder="Ex: Letra A...">
+                    </div>
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_correta" name="is_correta">
+                        <label class="form-check-label fw-bold text-success" for="is_correta">Esta é a resposta correta</label>
+                    </div>
+                {% else %}
+                    <!-- FORMULÁRIO DE ASSOCIAÇÃO -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Coluna Esquerda (Item Fixo)</label>
+                        <input type="text" class="form-control bg-light border-0" name="coluna_a" required placeholder="Ex: Sinal de Árvore">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Coluna Direita (Correspondência)</label>
+                        <input type="text" class="form-control bg-light border-0" name="coluna_b" required placeholder="Ex: Árvore">
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn text-white w-100 fw-bold shadow-sm" style="background-color: var(--brand-green);">
+                    <i class="bi bi-plus-lg me-1"></i> Adicionar
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- COLUNA DA DIREITA: Lista do que já foi adicionado -->
+    <div class="col-md-7">
+        <div class="card-custom bg-white p-4 border shadow-sm h-100">
+            <h5 class="fw-bold mb-4">Itens Cadastrados</h5>
+            
+            {% if pergunta.tipo_pergunta == 'MULTIPLA' %}
+                <!-- LISTA DE ALTERNATIVAS -->
+                <ul class="list-group list-group-flush">
+                    {% for alt in alternativas %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div>
+                                {% if alt.is_correta %}
+                                    <span class="badge bg-success me-2"><i class="bi bi-check-lg"></i> Correta</span>
+                                {% else %}
+                                    <span class="badge bg-secondary opacity-50 me-2">Incorreta</span>
+                                {% endif %}
+                                <span class="fw-semibold">{{ alt.texto }}</span>
+                            </div>
+                            <form action="{% url 'excluir_alternativa' alt.id %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-light text-danger border" title="Excluir"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-list-check fs-2 d-block mb-2 opacity-25"></i>
+                            <p class="small mb-0">Nenhuma alternativa cadastrada ainda.</p>
+                        </div>
+                    {% endfor %}
+                </ul>
+                
+            {% else %}
+                <!-- LISTA DE ASSOCIAÇÃO -->
+                <ul class="list-group list-group-flush">
+                    {% for item in itens_associacao %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div class="d-flex align-items-center gap-3 w-100 pe-3">
+                                <div class="bg-light p-2 rounded fw-semibold text-center w-50 border">{{ item.coluna_a }}</div>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <div class="bg-light p-2 rounded fw-semibold text-center w-50 border">{{ item.coluna_b }}</div>
+                            </div>
+                            <form action="{% url 'excluir_item_associacao' item.id %}" method="POST" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-light text-danger border" title="Excluir"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-bezier2 fs-2 d-block mb-2 opacity-25"></i>
+                            <p class="small mb-0">Nenhum par de associação cadastrado ainda.</p>
+                        </div>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

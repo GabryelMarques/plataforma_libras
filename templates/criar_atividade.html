@@ -26,9 +26,10 @@
 
                 <div class="row mb-4">
                     <div class="col-md-6 mb-4 mb-md-0">
-                        <label for="modulo" class="form-label fw-bold text-dark">Vincular ao Módulo <span class="text-danger">*</span></label>
-                        <select class="form-select bg-light border-0" id="modulo" name="modulo" required>
-                            <option value="" selected disabled>Selecione um módulo...</option>
+                        <label for="modulo" class="form-label fw-bold text-dark">Vincular ao Módulo <span class="text-muted fw-normal">(Opcional)</span></label>
+                        <!-- Removido o 'required' -->
+                        <select class="form-select bg-light border-0" id="modulo" name="modulo">
+                            <option value="" selected>[ Avaliação Global - Sem Módulo ]</option>
                             {% for modulo in modulos %}
                                 <option value="{{ modulo.id }}">{{ modulo.titulo }}</option>
                             {% endfor %}

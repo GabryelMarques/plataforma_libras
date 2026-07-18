@@ -34,9 +34,15 @@
                     </td>
                     
                     <td class="py-4">
-                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                            <i class="bi bi-box-seam text-muted me-1"></i> {{ atividade.modulo.titulo }}
-                        </span>
+                        {% if atividade.modulo %}
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                                <i class="bi bi-box-seam text-muted me-1"></i> {{ atividade.modulo.titulo }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-dark bg-opacity-10 text-dark border px-3 py-2 rounded-pill">
+                                <i class="bi bi-globe me-1"></i> Avaliação Global
+                            </span>
+                        {% endif %}
                     </td>
                     
                     <td class="py-4 text-center">

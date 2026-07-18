@@ -1,4 +1,5 @@
 import random 
+from django.db.models import Q
 import csv
 from datetime import timedelta
 from django.http import HttpResponse
@@ -11,6 +12,9 @@ from modulos.models import Modulo, Videoaula, ProgressoAula , Atividade, Pergunt
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from accounts.models import Usuario
+from django.utils import timezone 
+from django.http import JsonResponse
+from django.urls import reverse
 
 def home(request):
     # Busca todos os módulos no banco, ordenados pelo campo 'ordem'
@@ -179,109 +183,149 @@ def responder_atividade(request, atividade_id):
 
 
 
-# O decorador @staff_member_required barra qualquer aluno comum de acessar essa URL
+
+
 @staff_member_required(login_url='/login/')
 def painel_pesquisador(request):
-    # Pega apenas os alunos comuns (ignora contas de administradores/professores)
+    # 1. SISTEMA DE BUSCA GLOBAL
+    query = request.GET.get('q', '')
     alunos = Usuario.objects.filter(is_staff=False)
+    
+    if query:
+        alunos = alunos.filter(Q(nome__icontains=query) | Q(email__icontains=query))
+        
     total_alunos = alunos.count()
     
-    # Métricas Gerais
-    aulas_assistidas_total = ProgressoAula.objects.filter(concluida=True).count()
-    total_videoaulas = Videoaula.objects.count()
+    # 2. VARIÁVEIS PARA OS CÁLCULOS GERAIS
+    total_aulas_sistema = Videoaula.objects.count()
+    perguntas_pre = Pergunta.objects.filter(atividade__tipo='PRE')
+    perguntas_pos = Pergunta.objects.filter(atividade__tipo='POS')
     
-    # Monta a tabela de alunos com o progresso de cada um
+    total_q_pre = perguntas_pre.count()
+    total_q_pos = perguntas_pos.count()
+    
+    alunos_concluidos = 0
+    soma_notas_pre = 0
+    soma_notas_pos = 0
+    alunos_fizeram_pre = 0
+    alunos_fizeram_pos = 0
+    
     alunos_data = []
+
+    # 3. MOTOR DE PROCESSAMENTO INDIVIDUAL
     for aluno in alunos:
-        # Quantas aulas esse aluno concluiu?
-        aulas_aluno = ProgressoAula.objects.filter(aluno=aluno, concluida=True).count()
+        # A. Calcula Progresso das Aulas
+        aulas_assistidas = ProgressoAula.objects.filter(aluno=aluno, concluida=True).count()
+        progresso = int((aulas_assistidas / total_aulas_sistema) * 100) if total_aulas_sistema > 0 else 0
         
-        # Calcula a % de progresso do aluno (evita erro de divisão por zero)
-        progresso_percentual = int((aulas_aluno / total_videoaulas) * 100) if total_videoaulas > 0 else 0
+        if progresso == 100:
+            alunos_concluidos += 1
+            
+        # B. Checa se fez os testes
+        fez_pre = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pre).exists()
+        fez_pos = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pos).exists()
         
-        # Checa se o aluno já enviou algum pré-teste ou pós-teste
-        fez_pre = RespostaAluno.objects.filter(aluno=aluno, pergunta__atividade__tipo='PRE').exists() or \
-                  RespostaAssociacaoAluno.objects.filter(aluno=aluno, pergunta__atividade__tipo='PRE').exists()
-                  
-        fez_pos = RespostaAluno.objects.filter(aluno=aluno, pergunta__atividade__tipo='POS').exists() or \
-                  RespostaAssociacaoAluno.objects.filter(aluno=aluno, pergunta__atividade__tipo='POS').exists()
-        
+        # C. Calcula a Nota do Pré-teste (0 a 10)
+        if fez_pre and total_q_pre > 0:
+            acertos_pre = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pre, alternativa__is_correta=True).count()
+            nota_pre = (acertos_pre / total_q_pre) * 10
+            soma_notas_pre += nota_pre
+            alunos_fizeram_pre += 1
+            
+        # D. Calcula a Nota do Pós-teste (0 a 10)
+        if fez_pos and total_q_pos > 0:
+            acertos_pos = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pos, alternativa__is_correta=True).count()
+            nota_pos = (acertos_pos / total_q_pos) * 10
+            soma_notas_pos += nota_pos
+            alunos_fizeram_pos += 1
+
+        # E. Salva os dados para a Tabela HTML
         alunos_data.append({
             'nome': aluno.nome,
             'email': aluno.email,
-            'data_cadastro': aluno.date_joined,
-            'progresso': progresso_percentual,
+            'data_cadastro': aluno.date_joined, # Altere para o campo de data de criação correto do seu model Usuario
             'fez_pre': fez_pre,
             'fez_pos': fez_pos,
+            'progresso': progresso,
         })
         
+    # 4. CÁLCULO DAS MÉDIAS FINAIS DO PAINEL
+    taxa_conclusao = f"{(alunos_concluidos / total_alunos * 100):.0f}%" if total_alunos > 0 else "0%"
+    
+    # Faz a média e converte para string com vírgula (ex: "8.5" vira "8,5")
+    media_pre = round(soma_notas_pre / alunos_fizeram_pre, 1) if alunos_fizeram_pre > 0 else 0.0
+    media_pos = round(soma_notas_pos / alunos_fizeram_pos, 1) if alunos_fizeram_pos > 0 else 0.0
+
     context = {
         'total_alunos': total_alunos,
-        'aulas_assistidas_total': aulas_assistidas_total,
+        'taxa_conclusao': taxa_conclusao,
+        'alunos_concluidos': alunos_concluidos,
+        'media_pre_teste': str(media_pre).replace('.', ','),
+        'media_pos_teste': str(media_pos).replace('.', ','),
         'alunos_data': alunos_data,
+        'query': query,
     }
+    
     return render(request, 'painel_pesquisador.html', context)
 
 @staff_member_required(login_url='/login/')
 def exportar_dados_csv(request):
-    # Configura a resposta do navegador para entender que é um download de arquivo CSV
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="dados_pesquisa_libras.csv"'
-
-    # Usamos ponto e vírgula ';' como separador, pois o Excel em português do Brasil entende isso nativamente
+    # 1. Configura a resposta HTTP para forçar o download do arquivo
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig') # utf-8-sig aceita acentuação no Excel
+    data_atual = timezone.now().strftime('%Y-%m-%d')
+    response['Content-Disposition'] = f'attachment; filename="dataset_libras_{data_atual}.csv"'
+    
+    # 2. Cria o escritor do CSV (Usando ';' para compatibilidade com o Excel BR)
     writer = csv.writer(response, delimiter=';')
     
-    # Escreve o cabeçalho da planilha (A primeira linha em negrito no Excel)
-    writer.writerow(['Aluno', 'Email', 'Módulo', 'Atividade', 'Tipo de Atividade', 'Enunciado / Coluna A', 'Resposta do Aluno', 'Gabarito Correto', 'Acertou?', 'Data/Hora da Resposta'])
-
-    # 1. Busca e escreve as respostas de Múltipla Escolha
-    respostas_multipla = RespostaAluno.objects.all().select_related('aluno', 'pergunta__atividade__modulo', 'alternativa')
+    # 3. Escreve o Cabeçalho (a primeira linha do arquivo)
+    writer.writerow(['Nome do Sujeito', 'E-mail', 'Data de Ingresso', 'Progresso da Intervenção (%)', 'Fez Pré-teste', 'Nota Pré-teste', 'Fez Pós-teste', 'Nota Pós-teste'])
     
-    for r in respostas_multipla:
-        pergunta = r.pergunta
-        atividade = pergunta.atividade
-        
-        # Encontra qual era a alternativa correta no banco para comparar
-        alternativa_correta = pergunta.alternativas.filter(is_correta=True).first()
-        gabarito = alternativa_correta.texto if alternativa_correta else 'N/A'
-        acertou = 'Sim' if r.alternativa.is_correta else 'Não'
-        
-        writer.writerow([
-            r.aluno.nome,
-            r.aluno.email,
-            atividade.modulo.titulo,
-            atividade.titulo,
-            atividade.get_tipo_display(),
-            pergunta.enunciado,
-            r.alternativa.texto,
-            gabarito,
-            acertou,
-            r.data_resposta.strftime('%d/%m/%Y %H:%M')
-        ])
-
-    # 2. Busca e escreve as respostas de Associação (Ligar Colunas)
-    respostas_assoc = RespostaAssociacaoAluno.objects.all().select_related('aluno', 'pergunta__atividade__modulo', 'item_a')
+    # 4. Busca os dados reais
+    alunos = Usuario.objects.filter(is_staff=False)
+    total_aulas = Videoaula.objects.count()
+    perguntas_pre = Pergunta.objects.filter(atividade__tipo='PRE')
+    perguntas_pos = Pergunta.objects.filter(atividade__tipo='POS')
+    total_q_pre = perguntas_pre.count()
+    total_q_pos = perguntas_pos.count()
     
-    for r in respostas_assoc:
-        pergunta = r.pergunta
-        atividade = pergunta.atividade
-        item = r.item_a
+    for aluno in alunos:
+        # Progresso
+        aulas_assistidas = ProgressoAula.objects.filter(aluno=aluno, concluida=True).count()
+        progresso = int((aulas_assistidas / total_aulas) * 100) if total_aulas > 0 else 0
         
-        acertou = 'Sim' if r.resposta_aluno_coluna_b == item.coluna_b else 'Não'
+        # Pré-teste
+        fez_pre = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pre).exists()
+        nota_pre = 0
+        if fez_pre and total_q_pre > 0:
+            acertos_pre = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pre, alternativa__is_correta=True).count()
+            nota_pre = round((acertos_pre / total_q_pre) * 10, 1)
+            
+        # Pós-teste
+        fez_pos = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pos).exists()
+        nota_pos = 0
+        if fez_pos and total_q_pos > 0:
+            acertos_pos = RespostaAluno.objects.filter(aluno=aluno, pergunta__in=perguntas_pos, alternativa__is_correta=True).count()
+            nota_pos = round((acertos_pos / total_q_pos) * 10, 1)
         
+        # Formatação de texto para o Excel
+        # Confirme se seu model de usuário usa 'date_joined' ou outro nome
+        data_cadastro = aluno.date_joined.strftime('%d/%m/%Y') if aluno.date_joined else 'N/A' 
+        fez_pre_str = 'Sim' if fez_pre else 'Não'
+        fez_pos_str = 'Sim' if fez_pos else 'Não'
+        
+        # 5. Escreve a linha do aluno no arquivo
         writer.writerow([
-            r.aluno.nome,
-            r.aluno.email,
-            atividade.modulo.titulo,
-            atividade.titulo,
-            atividade.get_tipo_display(),
-            f"{pergunta.enunciado} (Item: {item.coluna_a})",
-            r.resposta_aluno_coluna_b,
-            item.coluna_b,
-            acertou,
-            r.data_resposta.strftime('%d/%m/%Y %H:%M')
+            aluno.nome, 
+            aluno.email, 
+            data_cadastro, 
+            progresso, 
+            fez_pre_str, 
+            str(nota_pre).replace('.', ','), 
+            fez_pos_str, 
+            str(nota_pos).replace('.', ',')
         ])
-
+        
     return response
 
 from modulos.models import Modulo # Certifique-se de que Modulo está importado
@@ -444,12 +488,12 @@ def gestao_atividades(request):
 @staff_member_required(login_url='/login/')
 def criar_atividade(request):
     modulos = Modulo.objects.all().order_by('ordem')
-    # Puxa as opções ('PRE', 'Pré-teste'), etc., definidas no models.py
     tipos_atividade = Atividade.TIPO_CHOICES 
     
     if request.method == 'POST':
         modulo_id = request.POST.get('modulo')
-        modulo = get_object_or_404(Modulo, id=modulo_id)
+        # A mágica acontece aqui: se não houver modulo_id, ele salva como None (vazio)
+        modulo = get_object_or_404(Modulo, id=modulo_id) if modulo_id else None
         
         Atividade.objects.create(
             titulo=request.POST.get('titulo'),
@@ -470,7 +514,8 @@ def editar_atividade(request, atividade_id):
     
     if request.method == 'POST':
         modulo_id = request.POST.get('modulo')
-        atividade.modulo = get_object_or_404(Modulo, id=modulo_id)
+        # Atualiza para o módulo escolhido, ou None se for Avaliação Global
+        atividade.modulo = get_object_or_404(Modulo, id=modulo_id) if modulo_id else None
         atividade.titulo = request.POST.get('titulo')
         atividade.descricao = request.POST.get('descricao')
         atividade.tipo = request.POST.get('tipo')
@@ -479,7 +524,6 @@ def editar_atividade(request, atividade_id):
         return redirect('gestao_atividades')
         
     return render(request, 'editar_atividade.html', {'atividade': atividade, 'modulos': modulos, 'tipos_atividade': tipos_atividade})
-
 
 @staff_member_required(login_url='/login/')
 def excluir_atividade(request, atividade_id):
@@ -505,3 +549,152 @@ def gerenciar_perguntas(request, atividade_id):
         'perguntas': perguntas
     }
     return render(request, 'gerenciar_perguntas.html', context)
+
+@staff_member_required(login_url='/login/')
+def criar_pergunta(request, atividade_id, tipo):
+    atividade = get_object_or_404(Atividade, id=atividade_id)
+    
+    # Validação de segurança para garantir que o tipo é válido
+    if tipo not in ['MULTIPLA', 'ASSOC']:
+        return redirect('gerenciar_perguntas', atividade_id=atividade.id)
+        
+    if request.method == 'POST':
+        Pergunta.objects.create(
+            atividade=atividade,
+            tipo_pergunta=tipo,
+            enunciado=request.POST.get('enunciado'),
+            ordem=request.POST.get('ordem', 1),
+            imagem_apoio=request.FILES.get('imagem_apoio')
+        )
+        # Após salvar o enunciado, volta para a lista de perguntas
+        return redirect('gerenciar_perguntas', atividade_id=atividade.id)
+        
+    return render(request, 'criar_pergunta.html', {'atividade': atividade, 'tipo': tipo})
+
+@staff_member_required(login_url='/login/')
+def editar_pergunta(request, pergunta_id):
+    pergunta = get_object_or_404(Pergunta, id=pergunta_id)
+    atividade = pergunta.atividade
+    
+    if request.method == 'POST':
+        pergunta.enunciado = request.POST.get('enunciado')
+        pergunta.ordem = request.POST.get('ordem', 1)
+        
+        # Só atualiza a imagem se o usuário enviou uma nova
+        if 'imagem_apoio' in request.FILES:
+            pergunta.imagem_apoio = request.FILES.get('imagem_apoio')
+            
+        pergunta.save()
+        return redirect('gerenciar_perguntas', atividade_id=atividade.id)
+        
+    return render(request, 'editar_pergunta.html', {'pergunta': pergunta, 'atividade': atividade})
+
+
+@staff_member_required(login_url='/login/')
+def excluir_pergunta(request, pergunta_id):
+    pergunta = get_object_or_404(Pergunta, id=pergunta_id)
+    atividade_id = pergunta.atividade.id # Guardamos o ID antes de apagar para poder voltar pra tela certa
+    
+    if request.method == 'POST':
+        pergunta.delete()
+        
+    return redirect('gerenciar_perguntas', atividade_id=atividade_id)
+
+
+from modulos.models import Modulo, Videoaula, Atividade, Pergunta, Alternativa, ItemAssociacao # Atualize os imports
+
+# ==========================================
+# CONFIGURAÇÃO DE ALTERNATIVAS E ASSOCIAÇÕES
+# ==========================================
+
+@staff_member_required(login_url='/login/')
+def configurar_pergunta(request, pergunta_id):
+    pergunta = get_object_or_404(Pergunta, id=pergunta_id)
+    atividade = pergunta.atividade
+    
+    if request.method == 'POST':
+        if pergunta.tipo_pergunta == 'MULTIPLA':
+            Alternativa.objects.create(
+                pergunta=pergunta,
+                texto=request.POST.get('texto'),
+                is_correta=request.POST.get('is_correta') == 'on' # Retorna True se o checkbox for marcado
+            )
+        elif pergunta.tipo_pergunta == 'ASSOC':
+            ItemAssociacao.objects.create(
+                pergunta=pergunta,
+                coluna_a=request.POST.get('coluna_a'),
+                coluna_b=request.POST.get('coluna_b')
+            )
+        # Recarrega a própria página para continuar adicionando itens
+        return redirect('configurar_pergunta', pergunta_id=pergunta.id)
+        
+    # Puxa os dados existentes para listar na tela
+    alternativas = pergunta.alternativas.all() if pergunta.tipo_pergunta == 'MULTIPLA' else None
+    itens_associacao = pergunta.itens_associacao.all() if pergunta.tipo_pergunta == 'ASSOC' else None
+    
+    context = {
+        'pergunta': pergunta,
+        'atividade': atividade,
+        'alternativas': alternativas,
+        'itens_associacao': itens_associacao
+    }
+    return render(request, 'configurar_pergunta.html', context)
+
+
+@staff_member_required(login_url='/login/')
+def excluir_alternativa(request, alternativa_id):
+    alternativa = get_object_or_404(Alternativa, id=alternativa_id)
+    pergunta_id = alternativa.pergunta.id
+    if request.method == 'POST':
+        alternativa.delete()
+    return redirect('configurar_pergunta', pergunta_id=pergunta_id)
+
+
+@staff_member_required(login_url='/login/')
+def excluir_item_associacao(request, item_id):
+    item = get_object_or_404(ItemAssociacao, id=item_id)
+    pergunta_id = item.pergunta.id
+    if request.method == 'POST':
+        item.delete()
+    return redirect('configurar_pergunta', pergunta_id=pergunta_id)
+
+@staff_member_required(login_url='/login/')
+def busca_global_ajax(request):
+    query = request.GET.get('q', '').strip()
+    
+    # Se digitar menos de 2 letras, não pesquisa nada para economizar banco de dados
+    if len(query) < 2:
+        return JsonResponse({'resultados': []})
+
+    resultados = []
+
+    # 1. Busca por Alunos
+    alunos = Usuario.objects.filter(is_staff=False).filter(
+        Q(nome__icontains=query) | Q(email__icontains=query)
+    )[:3] # Limita a 3 resultados
+    
+    for aluno in alunos:
+        resultados.append({
+            'tipo': 'Aluno (Amostra)',
+            'icone': 'bi-person-fill text-primary',
+            'texto': aluno.nome,
+            # Clicar no aluno redireciona para a própria tabela filtrada por ele
+            'url': f"?q={aluno.nome}" 
+        })
+
+    # 2. Busca por Atividades / Testes
+    atividades = Atividade.objects.filter(titulo__icontains=query)[:3]
+    
+    for atv in atividades:
+        # Clicar no teste já joga o professor pra tela de gerenciar as perguntas dele!
+        url = reverse('gerenciar_perguntas', args=[atv.id])
+        tipo_nome = atv.get_tipo_display()
+        
+        resultados.append({
+            'tipo': tipo_nome,
+            'icone': 'bi-file-earmark-text-fill text-warning',
+            'texto': atv.titulo,
+            'url': url
+        })
+
+    return JsonResponse({'resultados': resultados})

@@ -18,10 +18,13 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts.views import cadastro, fazer_login, sair, meu_perfil
 from core.views import home, dashboard, detalhe_modulo, assistir_aula, responder_atividade, painel_pesquisador, exportar_dados_csv, gestao_modulos, criar_modulo, editar_modulo, excluir_modulo
 from core.views import gestao_videoaulas, criar_videoaula, editar_videoaula, excluir_videoaula, gestao_atividades
 from core.views import criar_atividade, editar_atividade, excluir_atividade, gerenciar_perguntas
-from accounts.views import cadastro, fazer_login, sair, meu_perfil
+from core.views import criar_pergunta, configurar_pergunta, excluir_alternativa, excluir_item_associacao
+from core.views import editar_pergunta, excluir_pergunta, busca_global_ajax
+
 
 
 urlpatterns = [
@@ -36,7 +39,7 @@ urlpatterns = [
     path('aula/<int:aula_id>/', assistir_aula, name='assistir_aula'),
     path('atividade/<int:atividade_id>/', responder_atividade, name='responder_atividade'),
     path('painel-pesquisador/', painel_pesquisador, name='painel_pesquisador'),
-    path('exportar-dados-csv/', exportar_dados_csv, name='exportar_dados_csv'),
+    path('pesquisa/exportar/csv/', exportar_dados_csv, name='exportar_dados_csv'),
     path('gestao-modulos/', gestao_modulos, name='gestao_modulos'),
     path('criar-modulo/', criar_modulo, name='criar_modulo'),
     path('gestao/modulos/<int:modulo_id>/editar/', editar_modulo, name='editar_modulo'),
@@ -50,6 +53,13 @@ urlpatterns = [
     path('gestao/atividades/<int:atividade_id>/editar/', editar_atividade, name='editar_atividade'),
     path('gestao/atividades/<int:atividade_id>/excluir/', excluir_atividade, name='excluir_atividade'),
     path('gestao/atividades/<int:atividade_id>/perguntas/', gerenciar_perguntas, name='gerenciar_perguntas'),
+    path('gestao/atividades/<int:atividade_id>/perguntas/nova/<str:tipo>/', criar_pergunta, name='criar_pergunta'),
+    path('gestao/perguntas/<int:pergunta_id>/configurar/', configurar_pergunta, name='configurar_pergunta'),
+    path('gestao/alternativas/<int:alternativa_id>/excluir/', excluir_alternativa, name='excluir_alternativa'),
+    path('gestao/associacoes/<int:item_id>/excluir/', excluir_item_associacao, name='excluir_item_associacao'),
+    path('gestao/perguntas/<int:pergunta_id>/editar/', editar_pergunta, name='editar_pergunta'),
+    path('gestao/perguntas/<int:pergunta_id>/excluir/', excluir_pergunta, name='excluir_pergunta'),
+    path('pesquisa/ajax/', busca_global_ajax, name='busca_global_ajax'),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,60 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'gerenciar_perguntas' atividade.id %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; border: 1px solid #e2e8f0;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <span class="badge {% if tipo == 'MULTIPLA' %}bg-primary{% else %}bg-warning{% endif %} bg-opacity-10 {% if tipo == 'MULTIPLA' %}text-primary{% else %}text-warning{% endif %} px-2 py-1 rounded-pill mb-1" style="font-size: 0.7rem;">
+            {% if tipo == 'MULTIPLA' %}Múltipla Escolha{% else %}Associação de Colunas{% endif %}
+        </span>
+        <h3 class="fw-bold mb-0">Nova Questão</h3>
+        <span class="text-muted small">Atividade: {{ atividade.titulo }}</span>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-custom bg-white p-4 p-md-5 border shadow-sm">
+            
+            <form method="POST" action="{% url 'criar_pergunta' atividade.id tipo %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="enunciado" class="form-label fw-bold text-dark">Enunciado da Questão <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light border-0" id="enunciado" name="enunciado" rows="5" placeholder="Digite aqui o texto principal da sua pergunta..." required></textarea>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="ordem" class="form-label fw-bold text-dark">Número da Questão <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control bg-light border-0" id="ordem" name="ordem" value="1" min="1" required>
+                        <div class="form-text small">Ex: 1 para "Questão 1".</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="imagem_apoio" class="form-label fw-bold text-dark">Imagem de Apoio <span class="text-muted fw-normal">(Opcional)</span></label>
+                        <input type="file" class="form-control bg-light border-0" id="imagem_apoio" name="imagem_apoio" accept="image/*">
+                        <div class="form-text small">Use caso a pergunta dependa da análise de uma imagem ou sinal.</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 bg-info bg-opacity-10 text-dark small mb-4" style="border-radius: 8px;">
+                    <i class="bi bi-info-circle-fill text-info me-2"></i>
+                    <strong>Atenção:</strong> Após salvar o enunciado, você será redirecionado para a tela anterior, onde poderá clicar em <strong>"Configurar"</strong> para adicionar as alternativas ou os itens de ligação.
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 pt-4 border-top">
+                    <a href="{% url 'gerenciar_perguntas' atividade.id %}" class="btn btn-light px-4 fw-semibold rounded-pill border">Cancelar</a>
+                    <button type="submit" class="btn text-white px-5 fw-bold rounded-pill shadow-sm" style="background-color: var(--brand-green);">
+                        Salvar Enunciado <i class="bi bi-check-lg ms-1"></i>
+                    </button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

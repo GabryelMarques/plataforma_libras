@@ -31,11 +31,12 @@ class Videoaula(models.Model):
         return self.titulo
 
 class Atividade(models.Model):
-    modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='atividades')
+    # --- ALTERAÇÃO AQUI: adicionamos null=True, blank=True ---
+    modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='atividades', null=True, blank=True)
+    
     titulo = models.CharField(max_length=255, verbose_name="Título")
     descricao = models.TextField(verbose_name="Descrição")
     
-    # --- NOVIDADE AQUI: O tipo da atividade ---
     TIPO_CHOICES = (
         ('PRE', 'Pré-teste'),
         ('POS', 'Pós-teste'),
