@@ -11,7 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from modulos.models import Modulo, Videoaula, ProgressoAula , Atividade, Pergunta, Alternativa, RespostaAluno, RespostaAssociacaoAluno, Videoaula
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from accounts.models import Usuario
+from accounts.models import Escola, Usuario
 from django.utils import timezone 
 from django.http import JsonResponse
 from django.urls import reverse
@@ -242,6 +242,8 @@ def painel_pesquisador(request):
         # E. Salva os dados para a Tabela HTML
         alunos_data.append({
             'nome': aluno.nome,
+            'id': aluno.id,
+            'aluno_id': aluno.id,
             'email': aluno.email,
             'data_cadastro': aluno.date_joined, # Altere para o campo de data de criação correto do seu model Usuario
             'fez_pre': fez_pre,
@@ -678,11 +680,36 @@ def busca_global_ajax(request):
             'tipo': 'Aluno (Amostra)',
             'icone': 'bi-person-fill text-primary',
             'texto': aluno.nome,
-            # Clicar no aluno redireciona para a própria tabela filtrada por ele
-            'url': f"?q={aluno.nome}" 
+            'url': reverse('detalhe_participante', args=[aluno.id]) 
         })
 
-    # 2. Busca por Atividades / Testes
+    # 2. Busca por Módulos
+    modulos = Modulo.objects.filter(titulo__icontains=query)[:3]
+    
+    for mod in modulos:
+        url = reverse('editar_modulo', args=[mod.id])
+        
+        resultados.append({
+            'tipo': 'Módulo',
+            'icone': 'bi-folder-fill text-success',
+            'texto': mod.titulo,
+            'url': url
+        })
+
+    # 3. Busca por Videoaulas
+    aulas = Videoaula.objects.filter(titulo__icontains=query)[:3]
+    
+    for aula in aulas:
+        url = reverse('editar_videoaula', args=[aula.id])
+        
+        resultados.append({
+            'tipo': 'Videoaula',
+            'icone': 'bi-play-btn-fill text-danger',
+            'texto': aula.titulo,
+            'url': url
+        })
+
+    # 4. Busca por Atividades / Testes
     atividades = Atividade.objects.filter(titulo__icontains=query)[:3]
     
     for atv in atividades:
@@ -698,3 +725,45 @@ def busca_global_ajax(request):
         })
 
     return JsonResponse({'resultados': resultados})
+
+@staff_member_required(login_url='/login/')
+def detalhe_participante(request, aluno_id):
+    aluno = get_object_or_404(Usuario, id=aluno_id)
+    
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        
+        if acao == 'salvar_dados':
+            aluno.nome = request.POST.get('nome')
+            aluno.email = request.POST.get('email')
+            aluno.is_active = request.POST.get('is_active') == 'on'
+            aluno.is_staff = request.POST.get('is_staff') == 'on'
+            
+            # --- NOVOS CAMPOS: Salvando o Select ---
+            aluno.tipo = request.POST.get('tipo')
+            
+            escola_id = request.POST.get('escola')
+            if escola_id:
+                aluno.escola_id = escola_id  # Salva a ID da escola escolhida
+            else:
+                aluno.escola = None # Se escolher "Nenhuma", limpa o campo
+                
+            aluno.save()
+            messages.success(request, 'Dados do participante atualizados com sucesso!')
+            return redirect('detalhe_participante', aluno_id=aluno.id)
+            
+        elif acao == 'excluir_aluno':
+            aluno.delete()
+            messages.success(request, 'Participante excluído permanentemente do sistema.')
+            return redirect('painel_pesquisador')
+            
+    # --- ENVIANDO OPÇÕES DO BANCO DE DADOS PARA A TELA ---
+    escolas = Escola.objects.all()
+    tipos_perfil = Usuario.TIPO_CHOICES
+            
+    context = {
+        'aluno': aluno,
+        'escolas': escolas,
+        'tipos_perfil': tipos_perfil,
+    }
+    return render(request, 'detalhe_participante.html', context)

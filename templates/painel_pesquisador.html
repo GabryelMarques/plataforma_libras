@@ -43,7 +43,8 @@
             <i class="bi bi-download fs-5"></i> Exportar Dados
         </button>
         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2" style="border-radius: 12px; min-width: 200px;">
-            <li><a class="dropdown-item py-2 fw-semibold rounded mb-1" href="{% url 'exportar_dados_csv' %}"><i class="bi bi-filetype-csv text-primary me-2 fs-5 align-middle"></i> Formato CSV</a></li>            <li><a class="dropdown-item py-2 fw-semibold rounded mb-1" href="#"><i class="bi bi-file-earmark-excel text-success me-2 fs-5 align-middle"></i> Formato Excel</a></li>
+            <li><a class="dropdown-item py-2 fw-semibold rounded mb-1" href="{% url 'exportar_dados_csv' %}"><i class="bi bi-filetype-csv text-primary me-2 fs-5 align-middle"></i> Formato CSV</a></li>
+            <li><a class="dropdown-item py-2 fw-semibold rounded mb-1" href="#"><i class="bi bi-file-earmark-excel text-success me-2 fs-5 align-middle"></i> Formato Excel</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item py-2 fw-semibold rounded" href="#"><i class="bi bi-file-earmark-pdf text-danger me-2 fs-5 align-middle"></i> Relatório PDF</a></li>
         </ul>
@@ -59,7 +60,6 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Participantes</p>
-                    <!-- Removido o filtro default -->
                     <h2 class="fw-bold mb-0 text-dark">{{ total_alunos }}</h2>
                     <span class="text-muted small fw-medium">Registrados na base</span>
                 </div>
@@ -77,7 +77,6 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Taxa de Conclusão</p>
-                    <!-- Removido o filtro default -->
                     <h2 class="fw-bold mb-0 text-dark">{{ taxa_conclusao }}</h2>
                     <span class="text-success small fw-semibold">{{ alunos_concluidos }} de {{ total_alunos }}</span>
                 </div>
@@ -95,7 +94,6 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Média Pré-teste</p>
-                    <!-- Removido o filtro default -->
                     <h2 class="fw-bold mb-0 text-dark">{{ media_pre_teste }}</h2>
                     <span class="text-muted small fw-medium">de 10</span>
                 </div>
@@ -113,7 +111,6 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <p class="text-muted small fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Média Pós-teste</p>
-                    <!-- Removido o filtro default -->
                     <h2 class="fw-bold mb-0 text-dark">{{ media_pos_teste }}</h2>
                     <span class="text-muted small fw-medium">de 10</span>
                 </div>
@@ -141,6 +138,7 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light text-muted small text-uppercase" style="letter-spacing: 0.5px;">
                 <tr>
+                    <!-- CABEÇALHO CORRIGIDO AQUI -->
                     <th class="ps-4 py-3 border-0">Identificação</th>
                     <th class="py-3 border-0 text-center">Pré-teste</th>
                     <th class="py-3 border-0" style="width: 25%;">Progresso de Intervenção</th>
@@ -152,15 +150,17 @@
                 {% for aluno in alunos_data %}
                 <tr>
                     <td class="ps-4 py-4">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center fw-bold border" style="width: 40px; height: 40px;">
+                        <!-- LINK COLOCADO NO LUGAR CORRETO -->
+                        <a href="{% url 'detalhe_participante' aluno.aluno_id %}" class="d-flex align-items-center gap-3 text-decoration-none text-dark search-item-hover p-2 rounded transition-all">
+                            <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center fw-bold border shadow-sm" style="width: 40px; height: 40px;">
                                 {{ aluno.nome|make_list|first|upper }}
                             </div>
                             <div>
-                                <div class="fw-bold text-dark">{{ aluno.nome }}</div>
+                                <div class="fw-bold">{{ aluno.nome }}</div>
                                 <div class="text-muted small">{{ aluno.email }}</div>
                             </div>
-                        </div>
+                            <i class="bi bi-box-arrow-up-right text-primary opacity-50 ms-2 small" title="Abrir Raio-X"></i>
+                        </a>
                     </td>
                     
                     <td class="py-4 text-center">
@@ -214,9 +214,6 @@
     .dropdown-item:hover { background-color: #f8fafc; }
     tbody tr { transition: background-color 0.15s ease; }
     tbody tr:hover { background-color: #f8fafc !important; }
-</style>
-
-<style>
     .search-item-hover { transition: background-color 0.2s ease; }
     .search-item-hover:hover { background-color: #f8fafc; }
 </style>

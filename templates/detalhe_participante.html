@@ -1,0 +1,166 @@
+{% extends 'base_aluno.html' %}
+{% load static %}
+
+{% block content %}
+<div class="mb-4 d-flex align-items-center gap-3">
+    <a href="{% url 'painel_pesquisador' %}" class="btn btn-light rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm border" style="width: 40px; height: 40px;">
+        <i class="bi bi-arrow-left text-dark"></i>
+    </a>
+    <div>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill mb-1" style="font-size: 0.7rem;">Raio-X do Sujeito</span>
+        <h3 class="fw-bold mb-0 text-dark">Gestão Individual: {{ aluno.nome }}</h3>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success border-0 shadow-sm rounded-pill py-2 px-4 mb-4 fw-semibold text-center">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- COLUNA ESQUERDA: Dados Cadastrais e Edição -->
+    <div class="col-lg-8">
+        <div class="card-custom bg-white p-4 border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <h5 class="fw-bold mb-4 border-bottom pb-3"><i class="bi bi-person-vcard me-2 text-muted"></i>Dados do Participante</h5>
+            
+            <form method="POST" action="{% url 'detalhe_participante' aluno.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="salvar_dados">
+
+                <!-- Dados Básicos Editáveis -->
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Nome Completo</label>
+                        <input type="text" class="form-control bg-light border-0 py-2" name="nome" value="{{ aluno.nome }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Endereço de E-mail</label>
+                        <input type="email" class="form-control bg-light border-0 py-2" name="email" value="{{ aluno.email }}" required>
+                    </div>
+                </div>
+
+                <!-- Dados Acadêmicos (Opções do Banco de Dados) -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Instituição (Escola)</label>
+                        <select class="form-select bg-light border-0 py-2 text-dark fw-semibold shadow-none" name="escola">
+                            <option value="">-- Nenhuma Instituição --</option>
+                            {% for escola in escolas %}
+                                <option value="{{ escola.id }}" {% if aluno.escola and aluno.escola.id == escola.id %}selected{% endif %}>
+                                    {{ escola.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Tipo de Perfil</label>
+                        <select class="form-select bg-light border-0 py-2 text-dark fw-semibold shadow-none" name="tipo" required>
+                            {% for valor, rotulo in tipos_perfil %}
+                                <option value="{{ valor }}" {% if aluno.tipo == valor %}selected{% endif %}>
+                                    {{ rotulo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bloco de Permissões -->
+                <div class="p-3 bg-light rounded mb-4 border border-secondary border-opacity-10">
+                    <h6 class="fw-bold mb-3 small text-uppercase text-muted"><i class="bi bi-shield-lock me-2"></i>Permissões de Acesso</h6>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" {% if aluno.is_active %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-dark" for="is_active">
+                            Conta Ativa <span class="text-muted fw-normal small d-block">Desative para impedir o aluno de fazer login sem apagar seus dados de pesquisa.</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_staff" name="is_staff" {% if aluno.is_staff %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold text-danger" for="is_staff">
+                            Privilégios de Pesquisador <span class="text-muted fw-normal small d-block">Dá acesso ao Painel de Gestão e visualização de dados de todos os sujeitos.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn text-white px-4 py-2 fw-bold rounded-pill shadow-sm transition-all" style="background-color: #0f766e;">
+                        <i class="bi bi-floppy-fill me-1"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COLUNA DIREITA: Estatísticas e Zona de Perigo -->
+    <div class="col-lg-4 d-flex flex-column gap-4">
+        
+        <!-- Card de Histórico de Acesso -->
+        <div class="card-custom bg-white p-4 border-0 shadow-sm" style="border-radius: 12px;">
+            <h5 class="fw-bold mb-3 border-bottom pb-2 text-dark"><i class="bi bi-clock-history me-2 text-primary"></i>Histórico</h5>
+            
+            <div class="mb-4 mt-3">
+                <span class="d-block small text-muted text-uppercase fw-bold mb-1">Primeiro Acesso (Ingresso)</span>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-light p-2 rounded text-secondary"><i class="bi bi-calendar-check"></i></div>
+                    <span class="text-dark fw-semibold">{{ aluno.date_joined|date:"d/m/Y às H:i" }}</span>
+                </div>
+            </div>
+            
+            <div>
+                <span class="d-block small text-muted text-uppercase fw-bold mb-1">Último Login na Plataforma</span>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-light p-2 rounded text-secondary"><i class="bi bi-box-arrow-in-right"></i></div>
+                    <span class="text-dark fw-semibold">
+                        {% if aluno.last_login %}
+                            {{ aluno.last_login|date:"d/m/Y às H:i" }}
+                        {% else %}
+                            <span class="text-warning">Nunca acessou</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Zona de Perigo -->
+        <div class="card-custom bg-danger bg-opacity-10 p-4 border border-danger border-opacity-25 shadow-sm flex-grow-1" style="border-radius: 12px;">
+            <h5 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>Zona de Perigo</h5>
+            <p class="small text-danger text-opacity-75 mb-4">A exclusão de um participante apagará permanentemente suas respostas do Pré-teste, Pós-teste e progresso das aulas. Esta ação <strong>não pode ser desfeita</strong>.</p>
+            
+            <button type="button" class="btn btn-danger w-100 fw-bold rounded-pill py-2 shadow-sm transition-all mt-auto" data-bs-toggle="modal" data-bs-target="#modalExcluir">
+                <i class="bi bi-trash3-fill me-1"></i> Excluir Sujeito
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="modalExcluir" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center p-4 p-md-5">
+                <i class="bi bi-x-circle-fill text-danger mb-3" style="font-size: 3.5rem;"></i>
+                <h4 class="fw-bold text-dark mb-2">Excluir Permanentemente?</h4>
+                <p class="text-muted mb-4">Você está prestes a apagar todos os rastros de <strong>{{ aluno.nome }}</strong> do banco de dados da pesquisa. Esta ação é irreversível.</p>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light px-4 py-2 fw-semibold rounded-pill border" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" action="{% url 'detalhe_participante' aluno.id %}" class="m-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="excluir_aluno">
+                        <button type="submit" class="btn btn-danger px-4 py-2 fw-bold rounded-pill shadow-sm">Sim, Excluir Dados</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-all { transition: all 0.2s ease-in-out; }
+    .transition-all:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important; }
+</style>
+{% endblock %}
