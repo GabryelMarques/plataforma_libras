@@ -98,7 +98,7 @@ def dashboard(request):
 @tcle_required
 def detalhe_modulo(request, modulo_id):
     modulo = get_object_or_404(Modulo, id=modulo_id)
-    aulas = modulo.videoaulas.all().order_by('ordem')
+    aulas = modulo.videoaulas.filter(is_active=True).order_by('ordem')
     atividades = modulo.atividades.all()
     
     progressos = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=modulo)
@@ -163,7 +163,7 @@ def responder_atividade(request, atividade_id):
         if aulas.count() > 0 and aulas_concluidas < aulas.count():
             return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
 
-    perguntas = atividade.perguntas.all().prefetch_related('alternativas', 'itens_associacao')
+    perguntas = atividade.perguntas.filter(is_active=True).prefetch_related('alternativas', 'itens_associacao')
     
     ja_respondeu = False
     if perguntas.exists():
@@ -218,11 +218,11 @@ def painel_pesquisador(request):
         alunos = alunos.filter(Q(nome__icontains=query) | Q(email__icontains=query))
         
     total_alunos = alunos.count()
-    total_aulas_sistema = Videoaula.objects.count()
+    total_aulas_sistema = Videoaula.objects.filter(is_active=True).count()
     
     # Busca apenas os IDs das perguntas em uma única consulta rápida
-    perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE').values_list('id', flat=True))
-    perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS').values_list('id', flat=True))
+    perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE', is_active=True).values_list('id', flat=True))
+    perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS', is_active=True).values_list('id', flat=True))
     
     total_q_pre = len(perguntas_pre_ids)
     total_q_pos = len(perguntas_pos_ids)
@@ -299,10 +299,10 @@ def exportar_dados_csv(request):
         'progressos_aulas', 
         'respostas_atividades__alternativa'
     )
-    total_aulas = Videoaula.objects.count()
+    total_aulas = Videoaula.objects.filter(is_active=True).count()
     
-    perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE').values_list('id', flat=True))
-    perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS').values_list('id', flat=True))
+    perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE', is_active=True).values_list('id', flat=True))
+    perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS', is_active=True).values_list('id', flat=True))
     total_q_pre = len(perguntas_pre_ids)
     total_q_pos = len(perguntas_pos_ids)
     

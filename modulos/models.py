@@ -20,18 +20,20 @@ class Videoaula(models.Model):
     modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='videoaulas')
     titulo = models.CharField(max_length=255, verbose_name="Título")
     
+    # --- NOVA LINHA DE SEGURANÇA (SOFT DELETE) ---
+    is_active = models.BooleanField(default=True, verbose_name="Ativa (Visível para os alunos?)")
+    
     video = models.FileField(upload_to="videos/", blank=True, null=True, verbose_name="Arquivo de Vídeo")
     thumbnail = models.ImageField(upload_to="thumbs/", blank=True, null=True, verbose_name="Miniatura (Thumbnail)")
-    
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
     duracao = models.DurationField(blank=True, null=True, verbose_name="Duração (HH:MM:SS)")
     ordem = models.PositiveIntegerField(default=1, verbose_name="Ordem de Exibição")
 
     def __str__(self):
-        return self.titulo
+        status = "" if self.is_active else " [DESATIVADA]"
+        return f"{self.titulo}{status}"
 
 class Atividade(models.Model):
-    # --- ALTERAÇÃO AQUI: adicionamos null=True, blank=True ---
     modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='atividades', null=True, blank=True)
     
     titulo = models.CharField(max_length=255, verbose_name="Título")
@@ -47,9 +49,14 @@ class Atividade(models.Model):
     def __str__(self):
         return self.titulo
 
+# ==========================================
+# PROTEGIDO: Progresso do Aluno
+# ==========================================
 class ProgressoAula(models.Model):
-    aluno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='progressos_aulas')
-    aula = models.ForeignKey('Videoaula', on_delete=models.CASCADE)
+    # Protege para que o aluno não seja deletado se tiver progresso
+    aluno = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='progressos_aulas')
+    # Protege a aula. Se tiver progresso, a aula não pode ser excluída
+    aula = models.ForeignKey('Videoaula', on_delete=models.PROTECT)
     concluida = models.BooleanField(default=False)
     ultimo_acesso = models.DateTimeField(auto_now=True)
 
@@ -64,19 +71,19 @@ class ProgressoAula(models.Model):
 
 
 # ==========================================
-# NOVAS TABELAS: MOTOR DE TESTES/PROVAS
+# MOTOR DE TESTES/PROVAS
 # ==========================================
-
 class Pergunta(models.Model):
     atividade = models.ForeignKey(Atividade, on_delete=models.CASCADE, related_name='perguntas')
     
-    # --- NOVIDADE AQUI: O cérebro da pergunta agora sabe de qual tipo ela é ---
+    # --- NOVA LINHA DE SEGURANÇA (SOFT DELETE) ---
+    is_active = models.BooleanField(default=True, verbose_name="Ativa (Visível na prova?)")
+    
     TIPO_PERGUNTA_CHOICES = (
         ('MULTIPLA', 'Múltipla Escolha'),
         ('ASSOC', 'Associação (Ligar Colunas)'),
     )
     tipo_pergunta = models.CharField(max_length=15, choices=TIPO_PERGUNTA_CHOICES, default='MULTIPLA', verbose_name="Tipo de Questão")
-    
     enunciado = models.TextField(verbose_name="Enunciado da Questão")
     imagem_apoio = models.ImageField(upload_to="perguntas/", blank=True, null=True, verbose_name="Imagem de Apoio (Opcional)")
     ordem = models.PositiveIntegerField(default=1)
@@ -85,7 +92,8 @@ class Pergunta(models.Model):
         ordering = ['ordem']
 
     def __str__(self):
-        return f"Q{self.ordem} ({self.get_tipo_pergunta_display()}): {self.enunciado[:50]}..."
+        status = "" if self.is_active else " [DESATIVADA]"
+        return f"Q{self.ordem} ({self.get_tipo_pergunta_display()}): {self.enunciado[:50]}...{status}"
 
 class Alternativa(models.Model):
     pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE, related_name='alternativas')
@@ -95,10 +103,14 @@ class Alternativa(models.Model):
     def __str__(self):
         return f"[{'X' if self.is_correta else ' '}] {self.texto}"
 
+# ==========================================
+# PROTEGIDO: Respostas do Aluno (Múltipla Escolha)
+# ==========================================
 class RespostaAluno(models.Model):
-    aluno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='respostas_atividades')
-    pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE)
-    alternativa = models.ForeignKey(Alternativa, on_delete=models.CASCADE)
+    # Protegido: Se o aluno respondeu, os dados são bloqueados contra deleção acidental
+    aluno = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='respostas_atividades')
+    pergunta = models.ForeignKey(Pergunta, on_delete=models.PROTECT)
+    alternativa = models.ForeignKey(Alternativa, on_delete=models.PROTECT)
     data_resposta = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -110,10 +122,7 @@ class RespostaAluno(models.Model):
 # ==========================================
 # MOTOR DE ASSOCIATIVIDADE (LIGAR COLUNAS)
 # ==========================================
-
 class ItemAssociacao(models.Model):
-    # Funciona assim: O professor cadastra o par correto (ex: Coluna A "Sinal Árvore" -> Coluna B "Árvore")
-    # Na hora da prova, o Django vai embaralhar a Coluna B sozinho.
     pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE, related_name='itens_associacao')
     coluna_a = models.CharField(max_length=255, verbose_name="Item Esquerdo (Fixo)")
     coluna_b = models.CharField(max_length=255, verbose_name="Item Direito (Correspondente Correto)")
@@ -121,18 +130,19 @@ class ItemAssociacao(models.Model):
     def __str__(self):
         return f"{self.coluna_a} -> {self.coluna_b}"
 
+# ==========================================
+# PROTEGIDO: Respostas do Aluno (Associação)
+# ==========================================
 class RespostaAssociacaoAluno(models.Model):
-    # Guarda exatamente qual foi a ligação que o aluno fez
-    aluno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='respostas_associacao')
-    pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE)
-    item_a = models.ForeignKey(ItemAssociacao, on_delete=models.CASCADE)
+    aluno = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='respostas_associacao')
+    pergunta = models.ForeignKey(Pergunta, on_delete=models.PROTECT)
+    item_a = models.ForeignKey(ItemAssociacao, on_delete=models.PROTECT)
     
-    # O que ele escolheu na coluna B? (Vamos salvar em texto para comparar com a correta depois)
     resposta_aluno_coluna_b = models.CharField(max_length=255)
     data_resposta = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['aluno', 'item_a'] # Não deixa o aluno responder o mesmo item duas vezes
+        unique_together = ['aluno', 'item_a']
 
     def __str__(self):
         return f"{self.aluno.nome} ligou '{self.item_a.coluna_a}' com '{self.resposta_aluno_coluna_b}'"

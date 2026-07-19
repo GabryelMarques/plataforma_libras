@@ -30,7 +30,9 @@ class Usuario(AbstractUser):
     def __str__(self):
         return self.nome if self.nome else self.email
     
+# 3. Tabela de Aceite do TCLE
 class TCLEAceite(models.Model):
+    # OneToOneField garante que o aluno só tenha 1 registro de aceite
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='tcle_aceite')
     aceito = models.BooleanField(default=False)
     data_aceite = models.DateTimeField(auto_now_add=True)

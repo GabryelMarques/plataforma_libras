@@ -1,14 +1,15 @@
 from django.contrib import admin
-from .models import TCLE
-
-@admin.register(TCLE)
-class TCLEAdmin(admin.ModelAdmin):
-    list_display = ('usuario', 'aceitou', 'data_aceite')
-    list_filter = ('aceitou', 'data_aceite')
-    search_fields = ('usuario__nome', 'usuario__email')
-
-from django.contrib import admin
+# Importa o TCLEAceite lá do app accounts
+from accounts.models import TCLEAceite 
+# Importa a Configuração Global do próprio app
 from .models import ConfiguracaoSite
+
+@admin.register(TCLEAceite)
+class TCLEAceiteAdmin(admin.ModelAdmin):
+    # Ajustado para 'aceito' e incluído o 'ip_aceite' para auditoria ética
+    list_display = ('usuario', 'aceito', 'data_aceite', 'ip_aceite')
+    list_filter = ('aceito', 'data_aceite')
+    search_fields = ('usuario__nome', 'usuario__email')
 
 @admin.register(ConfiguracaoSite)
 class ConfiguracaoSiteAdmin(admin.ModelAdmin):
