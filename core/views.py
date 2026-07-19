@@ -28,15 +28,19 @@ def tcle_required(view_func):
                 return redirect('tcle_aceite')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+from .models import ConfiguracaoSite
+
 def home(request):
-    # Busca todos os módulos no banco, ordenados pelo campo 'ordem'
+    # Pega a configuração global (ou retorna None se ainda não existir)
+    config_site = ConfiguracaoSite.objects.first()
+    
+    # ... seu código existente que busca os módulos ...
     modulos = Modulo.objects.all().order_by('ordem')
     
-    # Cria um "pacote" (contexto) para enviar ao HTML
     context = {
-        'modulos': modulos
+        'modulos': modulos,
+        'config_site': config_site, # Enviando para o HTML
     }
-    
     return render(request, 'home.html', context)
 
 

@@ -94,18 +94,19 @@
                     <a href="/#como-funciona" class="footer-link">Como Funciona</a>
                     <a href="/#modulos" class="footer-link">Módulos</a>
                     <a href="/#faq" class="footer-link">Dúvidas Frequentes</a>
-                    <a href="#" class="footer-link">Entrar no Sistema</a>
+                    <a href="{% url 'login' %}" class="footer-link">Entrar no Sistema</a>
                 </div>
                 
                 <!-- Coluna 3: Informações -->
                 <div class="col-lg-2 col-6">
                     <h5 class="text-white mb-4 fw-bold fs-6">Informações</h5>
-                    <a href="/#pesquisa" class="footer-link">Sobre a Pesquisa</a>
-                    <a href="#" class="footer-link">Termo de Consentimento</a>
-                    <a href="#" class="footer-link">Política de Privacidade</a>
-                    <a href="#" class="footer-link">Diretrizes da UFT</a>
+                        <a href="/#pesquisa" class="footer-link">Sobre a Pesquisa</a>
+                        <!-- Quando criar a página do TCLE público, troque o '#' pela url -->
+                        <a href="#" class="footer-link text-muted" title="Em breve">Termo de Consentimento</a>
+                        <a href="#" class="footer-link text-muted" title="Em breve">Política de Privacidade</a>
+                        <a href="#" class="footer-link text-muted" title="Em breve">Diretrizes da UFT</a>                
                 </div>
-                
+                                        
                 <!-- Coluna 4: Contato -->
                 <div class="col-lg-4">
                     <h5 class="text-white mb-4 fw-bold fs-6">Contato</h5>
