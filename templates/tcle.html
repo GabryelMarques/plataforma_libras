@@ -1,19 +1,112 @@
-{% extends 'base_aluno.html' %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Termo de Consentimento (TCLE) | Evolução em Libras{% endblock %}
+
 {% block content %}
 <div class="container py-5">
-    <div class="card shadow-sm border-0 p-5">
-        <h2 class="fw-bold mb-4">Termo de Consentimento (TCLE)</h2>
-        <div class="border p-4 bg-light mb-4" style="max-height: 300px; overflow-y: auto;">
-            <p>Aqui você deve colar o texto completo do seu Termo de Consentimento aprovado pelo Comitê de Ética...</p>
-        </div>
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-check mb-4">
-                <input class="form-check-input" type="checkbox" id="aceite" required>
-                <label class="form-check-label" for="aceite">Li, entendi e aceito os termos da pesquisa.</label>
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-brand text-white p-4 text-center border-0">
+                    <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
+                    <h2 class="fw-bold h3 mb-0">Termo de Consentimento Livre e Esclarecido (TCLE)</h2>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="alert alert-info border-0 rounded-3 mb-4 d-flex">
+                        <i class="bi bi-info-circle-fill fs-4 text-info me-3 mt-1"></i>
+                        <div>
+                            <h5 class="alert-heading fw-bold">Aviso Importante</h5>
+                            <p class="mb-0 text-dark">Para acessar os conteúdos desta plataforma, você precisa ler e concordar com os termos da pesquisa abaixo. Este passo é obrigatório conforme as diretrizes do Comitê de Ética.</p>
+                        </div>
+                    </div>
+
+                    <!-- CAIXA DE TEXTO DO TCLE (COM ROLAGEM) -->
+                    <div class="tcle-content bg-light border rounded-3 p-4 mb-4" style="max-height: 400px; overflow-y: auto;">
+                        <h4 class="fw-bold mb-3">CONVITE PARA PARTICIPAÇÃO EM PESQUISA</h4>
+                        
+                        <p>Você está sendo convidado(a) a participar da pesquisa intitulada <strong>"Evolução em Libras: [Título Completo do seu Mestrado]"</strong>, sob a responsabilidade do pesquisador [Seu Nome Completo] e orientação do(a) Prof(a). Dr(a). [Nome do Orientador], vinculada ao Programa de Pós-Graduação [Nome do Programa] da Universidade Federal do Tocantins (UFT).</p>
+                        
+                        <h5 class="fw-bold mt-4">1. Qual o objetivo da pesquisa?</h5>
+                        <p>[Explique aqui o que você quer descobrir ou avaliar com o uso da plataforma...]</p>
+                        
+                        <h5 class="fw-bold mt-4">2. Como será a sua participação?</h5>
+                        <p>A sua participação consistirá em acessar a plataforma, assistir às videoaulas em Libras e responder aos testes de conhecimento (pré-teste e pós-teste). Os dados de acesso e as respostas serão coletados automaticamente pelo sistema.</p>
+                        
+                        <h5 class="fw-bold mt-4">3. Quais são os riscos e benefícios?</h5>
+                        <p><strong>Riscos:</strong> Os riscos envolvidos são mínimos, limitando-se ao cansaço natural durante a leitura ou resolução das atividades. Você poderá interromper a participação a qualquer momento.</p>
+                        <p><strong>Benefícios:</strong> Acesso a um material educacional inovador e gratuito, contribuindo para a melhoria do ensino de biologia para estudantes surdos.</p>
+                        
+                        <h5 class="fw-bold mt-4">4. Garantia de Sigilo e Privacidade</h5>
+                        <p>Garantimos que todas as suas informações pessoais (nome e e-mail) serão mantidas em absoluto sigilo. Os dados coletados serão utilizados exclusivamente para fins acadêmicos e publicados de forma anônima, impossibilitando a sua identificação.</p>
+
+                        <h5 class="fw-bold mt-4">5. Direitos do Participante</h5>
+                        <p>A sua participação é totalmente voluntária. Você tem o direito de se recusar a participar ou retirar o seu consentimento a qualquer momento, sem nenhum tipo de penalidade ou prejuízo.</p>
+
+                        <h5 class="fw-bold mt-4">6. Contatos</h5>
+                        <p>Em caso de dúvidas sobre a pesquisa, você pode contatar o pesquisador pelo e-mail: <strong>pesquisa@mail.uft.edu.br</strong>. Para dúvidas sobre ética na pesquisa, contate o Comitê de Ética em Pesquisa da UFT: [Email do CEP].</p>
+                    </div>
+
+                    <!-- FORMULÁRIO DE ACEITE -->
+                    <form method="POST" action="{% url 'tcle_aceite' %}">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-4 bg-white p-3 border rounded-3 border-secondary">
+                            <input class="form-check-input fs-5 ms-1 mt-2" type="checkbox" id="checkAceite" required>
+                            <label class="form-check-label fw-medium ms-2 ms-md-3" for="checkAceite">
+                                Declaro que li e compreendi as informações acima, tive a oportunidade de esclarecer minhas dúvidas e <strong>consinto livremente em participar desta pesquisa</strong>, autorizando a coleta e o uso dos meus dados.
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'sair' %}" class="btn btn-outline-danger px-4 py-2 fw-bold">Não Aceito (Sair)</a>
+                            <button type="submit" class="btn btn-brand px-5 py-2 fw-bold">Aceito Participar <i class="bi bi-check2-circle ms-2"></i></button>
+                        </div>
+                    </form>
+
+                </div>
             </div>
-            <button type="submit" class="btn btn-brand w-100">Confirmar Participação</button>
-        </form>
+            
+            <!-- Assinatura digital -->
+            <div class="text-center mt-4 text-muted small">
+                Ao clicar em "Aceito Participar", o sistema registrará seu consentimento com data, hora e endereço de IP (Protocolo de Internet) para fins de auditoria ética.
+            </div>
+
+        </div>
     </div>
 </div>
+
+<style>
+    /* Customizando a barra de rolagem da caixa do TCLE para ficar mais elegante */
+    .tcle-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    .tcle-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    .tcle-content::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    .tcle-content::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    .bg-brand {
+        background-color: #0d9488 !important; /* Cor da sua marca */
+    }
+    .btn-brand {
+        background-color: #0d9488;
+        color: white;
+        border: none;
+    }
+    .btn-brand:hover {
+        background-color: #0f766e;
+        color: white;
+    }
+</style>
 {% endblock %}

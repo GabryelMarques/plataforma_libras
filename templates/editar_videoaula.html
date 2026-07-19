@@ -54,6 +54,14 @@
                     </div>
                 </div>
 
+                <div class="mb-4 p-3 bg-light border rounded">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input fs-5" type="checkbox" role="switch" id="is_active" name="is_active" {% if aula.is_active %}checked{% endif %}>
+                        <label class="form-check-label fw-bold mt-1 ms-2" for="is_active text-dark">Aula Ativa (Visível para os alunos)</label>
+                    </div>
+                    <small class="text-muted d-block mt-1">Desmarque para desligar esta aula do sistema. Os dados de quem já assistiu não serão apagados.</small>
+                </div>
+
                 <div class="row mb-5">
                     <div class="col-md-6 mb-4 mb-md-0">
                         <label for="miniatura" class="form-label fw-bold text-dark">Nova Miniatura</label>

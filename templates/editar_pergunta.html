@@ -25,6 +25,14 @@
                     <textarea class="form-control bg-light border-0" id="enunciado" name="enunciado" rows="5" required>{{ pergunta.enunciado }}</textarea>
                 </div>
 
+                <div class="mb-4 p-3 bg-light border rounded">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input fs-5" type="checkbox" role="switch" id="is_active" name="is_active" {% if pergunta.is_active %}checked{% endif %}>
+                        <label class="form-check-label fw-bold mt-1 ms-2" for="is_active text-dark">Pergunta Ativa (Visível na prova)</label>
+                    </div>
+                    <small class="text-muted d-block mt-1">Desmarque para anular ou esconder esta pergunta. As respostas antigas continuarão a salvo no painel.</small>
+                </div>
+
                 <div class="row mb-5">
                     <div class="col-md-6 mb-4 mb-md-0">
                         <label for="ordem" class="form-label fw-bold text-dark">Número da Questão <span class="text-danger">*</span></label>

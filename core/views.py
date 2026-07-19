@@ -512,7 +512,8 @@ def editar_videoaula(request, aula_id):
         aula.titulo = request.POST.get('titulo')
         aula.descricao = request.POST.get('descricao')
         aula.ordem = request.POST.get('ordem', 1)
-        
+        aula.is_active = request.POST.get('is_active') == 'on'
+    
         duracao_str = request.POST.get('duracao')
         if duracao_str:
             partes = duracao_str.split(':')
@@ -613,6 +614,7 @@ def editar_pergunta(request, pergunta_id):
     if request.method == 'POST':
         pergunta.enunciado = request.POST.get('enunciado')
         pergunta.ordem = request.POST.get('ordem', 1)
+        pergunta.is_active = request.POST.get('is_active') == 'on'
         if 'imagem_apoio' in request.FILES:
             pergunta.imagem_apoio = request.FILES.get('imagem_apoio')
         pergunta.save()

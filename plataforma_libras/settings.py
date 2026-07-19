@@ -42,8 +42,6 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'modulos',
-    'atividades',
-    'avaliacoes'
 ]
 
 AUTH_USER_MODEL = 'accounts.Usuario'
