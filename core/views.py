@@ -14,6 +14,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 
 # Imports dos seus Apps
 from modulos.models import (
@@ -72,9 +73,11 @@ def tcle_aceite(request):
 
 @login_required(login_url='/login/')
 @tcle_required
+@never_cache
 def dashboard(request):
     aluno = request.user
     
+    # --- 1. LÓGICA DE PROGRESSO (Que você já tinha) ---
     total_aulas = Videoaula.objects.count()
     aulas_concluidas = ProgressoAula.objects.filter(aluno=aluno, concluida=True).count()
     
@@ -85,12 +88,33 @@ def dashboard(request):
     ultimo_acesso = ProgressoAula.objects.filter(aluno=aluno).order_by('-ultimo_acesso').first()
     modulos = Modulo.objects.prefetch_related('videoaulas', 'atividades').order_by('ordem')
     
+    # --- 2. NOVA LÓGICA DAS AVALIAÇÕES GLOBAIS ---
+    pre_teste = Atividade.objects.filter(tipo='PRE').first()
+    pos_teste = Atividade.objects.filter(tipo='POS').first()
+    
+    fez_pre_teste = False
+    if pre_teste:
+        fez_pre_teste = RespostaAluno.objects.filter(aluno=aluno, pergunta__atividade=pre_teste).exists()
+        
+    fez_pos_teste = False
+    if pos_teste:
+        fez_pos_teste = RespostaAluno.objects.filter(aluno=aluno, pergunta__atividade=pos_teste).exists()
+        
+    # Regra da pesquisa: Libera pós-teste ao atingir 70%
+    pos_teste_liberado = progresso_geral >= 70
+
     context = {
         'progresso_geral': progresso_geral,
         'aulas_concluidas': aulas_concluidas,
         'total_aulas': total_aulas,
         'ultimo_acesso': ultimo_acesso,
         'modulos': modulos,
+        # Variáveis novas enviadas para a tela:
+        'pre_teste': pre_teste,
+        'pos_teste': pos_teste,
+        'fez_pre_teste': fez_pre_teste,
+        'fez_pos_teste': fez_pos_teste,
+        'pos_teste_liberado': pos_teste_liberado,
     }
     return render(request, 'dashboard.html', context)
 
@@ -157,7 +181,7 @@ def assistir_aula(request, aula_id):
 def responder_atividade(request, atividade_id):
     atividade = get_object_or_404(Atividade, id=atividade_id)
     
-    if atividade.tipo == 'POS':
+    if atividade.tipo == 'POS' and atividade.modulo:
         aulas = atividade.modulo.videoaulas.all()
         aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=atividade.modulo, concluida=True).count()
         if aulas.count() > 0 and aulas_concluidas < aulas.count():
@@ -189,7 +213,11 @@ def responder_atividade(request, atividade_id):
                             item_a=item,
                             resposta_aluno_coluna_b=resposta_b
                         )
-        return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
+        # Se tem módulo, volta para o módulo; senão volta para dashboard
+        if atividade.modulo:
+            return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
+        else:
+            return redirect('dashboard')
 
     for pergunta in perguntas:
         if pergunta.tipo_pergunta == 'ASSOC':

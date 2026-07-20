@@ -10,22 +10,24 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: Usa a chave do ambiente ou uma padrão (local)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-w-$(5o_ov$w*k5c4#e1(_ld3wa)j%k#u9%6nc!73r3op)75)td')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# SECURITY WARNING: O Render cria uma variável chamada RENDER. Se ela existir, desliga o DEBUG.
+DEBUG = 'RENDER' not in os.environ
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-w-$(5o_ov$w*k5c4#e1(_ld3wa)j%k#u9%6nc!73r3op)75)td'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+# O Render também fornece o domínio oficial via variável de ambiente
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
 # Application definition
@@ -48,6 +50,7 @@ AUTH_USER_MODEL = 'accounts.Usuario'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # <-- ADICIONE ESTA LINHA AQUI
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,6 +89,11 @@ DATABASES = {
     }
 }
 
+# Se o Render injetar a URL de um banco de dados, o Django substitui o SQLite pelo PostgreSQL
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    DATABASES['default'] = dj_database_url.config(default=database_url, conn_max_age=600)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -121,11 +129,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-import os
+# Local onde o comando collectstatic vai juntar os arquivos no servidor
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Configuração para arquivos de mídia (uploads de usuários/admin)
+# Configuração moderna do Django para usar o WhiteNoise na compressão do CSS/JS
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# Configuração para arquivos de mídia (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

@@ -15,86 +15,181 @@
     </div>
 </div>
 
-<!-- Linha de Métricas -->
-<div class="row g-4 mb-5">
-    <!-- Módulos -->
-    <div class="col-md-4">
-        <div class="card-custom h-100 d-flex justify-content-between align-items-center flex-row">
-            <div>
-                <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.75rem;">Aulas Concluídas</p>
-                <h3 class="fw-bold mb-0">{{ aulas_concluidas }} <span class="fs-5 text-muted fw-normal">/ {{ total_aulas }}</span></h3>
+<!-- ========================================== -->
+<!-- PORTEIRA 1: PRÉ-TESTE OBRIGATÓRIO          -->
+<!-- ========================================== -->
+{% if pre_teste and not fez_pre_teste %}
+
+    <div class="card border-warning shadow-lg mb-5" style="border-radius: 15px;">
+        <div class="card-body text-center p-5">
+            <i class="bi bi-exclamation-triangle-fill text-warning mb-3" style="font-size: 4rem;"></i>
+            <h2 class="fw-bold">Avaliação Diagnóstica Pendente</h2>
+            <p class="lead text-muted mb-4">Para iniciar sua jornada e liberar os módulos de estudo, precisamos entender o seu nível atual de conhecimento. É rápido e fundamental para a pesquisa!</p>
+            <a href="{% url 'responder_atividade' pre_teste.id %}" class="btn btn-warning btn-lg fw-bold px-5 rounded-pill shadow-sm">
+                Iniciar Pré-teste Agora
+            </a>
+        </div>
+    </div>
+    
+    <!-- Módulos Visualmente Bloqueados (Cinzas e não clicáveis) -->
+    <div class="opacity-50" style="pointer-events: none; filter: grayscale(100%);">
+        <div class="mb-4 d-flex align-items-center">
+            <i class="bi bi-lock-fill fs-4 text-muted me-2"></i>
+            <h4 class="fw-bold mb-0 text-muted">Trilha de Aprendizagem Bloqueada</h4>
+        </div>
+        
+        <div class="row g-4">
+            {% for modulo in modulos %}
+            <div class="col-md-4">
+                <div class="card-modulo">
+                    {% if modulo.imagem_capa %}
+                        <img src="{{ modulo.imagem_capa.url }}" alt="{{ modulo.titulo }}" class="img-fluid" style="height: 160px; object-fit: cover; width: 100%;">
+                    {% else %}
+                        <div style="height: 160px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; width: 100%;">
+                            <i class="bi bi-image text-muted fs-1 opacity-25"></i>
+                        </div>
+                    {% endif %}
+                    <div class="p-4 d-flex flex-column" style="flex: 1;">
+                        <h5 class="fw-bold mb-2">{{ modulo.titulo }}</h5>
+                        <p class="text-muted small mb-4">{{ modulo.descricao|truncatechars:60 }}</p>
+                        <div class="mt-auto">
+                            <button class="btn btn-light w-100 rounded-pill text-muted fw-bold">Bloqueado</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="progress" style="width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(var(--brand-green) {{ progresso_geral }}%, #e2e8f0 0);">
-                <div style="width: 48px; height: 48px; background-color: white; border-radius: 50%; margin: 6px;"></div>
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- ========================================== -->
+<!-- ALUNO JÁ FEZ O PRÉ-TESTE (TRILHA LIVRE)    -->
+<!-- ========================================== -->
+{% else %}
+
+    <!-- Linha de Métricas (Seu código original) -->
+    <div class="row g-4 mb-5">
+        <!-- Módulos -->
+        <div class="col-md-4">
+            <div class="card-custom h-100 d-flex justify-content-between align-items-center flex-row">
+                <div>
+                    <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.75rem;">Aulas Concluídas</p>
+                    <h3 class="fw-bold mb-0">{{ aulas_concluidas }} <span class="fs-5 text-muted fw-normal">/ {{ total_aulas }}</span></h3>
+                </div>
+                <div class="progress" style="width: 60px; height: 60px; border-radius: 50%; background: conic-gradient(var(--brand-green) {{ progresso_geral }}%, #e2e8f0 0);">
+                    <div style="width: 48px; height: 48px; background-color: white; border-radius: 50%; margin: 6px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progresso Geral -->
+        <div class="col-md-8">
+            <div class="card-custom h-100 d-flex justify-content-between align-items-center flex-row" style="background-color: var(--brand-green); color: white; border: none;">
+                <div>
+                    <p class="text-uppercase fw-semibold mb-1 opacity-75" style="font-size: 0.75rem;">Progresso Geral da Trilha</p>
+                    <h3 class="fw-bold mb-0 fs-1">{{ progresso_geral }}%</h3>
+                </div>
+                <i class="bi bi-trophy" style="font-size: 3rem; opacity: 0.2;"></i>
             </div>
         </div>
     </div>
 
-    <!-- Progresso Geral -->
-    <div class="col-md-8">
-        <div class="card-custom h-100 d-flex justify-content-between align-items-center flex-row" style="background-color: var(--brand-green); color: white; border: none;">
-            <div>
-                <p class="text-uppercase fw-semibold mb-1 opacity-75" style="font-size: 0.75rem;">Progresso Geral da Trilha</p>
-                <h3 class="fw-bold mb-0 fs-1">{{ progresso_geral }}%</h3>
+    <!-- ========================================== -->
+    <!-- PORTEIRA 2: PÓS-TESTE (LIBERA COM 70%)     -->
+    <!-- ========================================== -->
+    {% if pos_teste and not fez_pos_teste %}
+        {% if pos_teste_liberado %}
+        <div class="card border-primary shadow mb-5" style="border-radius: 15px;">
+            <div class="card-body text-center p-4">
+                <h3 class="text-primary fw-bold">🎉 Pós-teste Liberado!</h3>
+                <p class="mb-4">Você atingiu <strong>{{ progresso_geral }}%</strong> da trilha. A avaliação final para contabilizar a sua evolução na pesquisa já está disponível.</p>
+                <a href="{% url 'responder_atividade' pos_teste.id %}" class="btn btn-primary btn-lg fw-bold rounded-pill px-5 shadow-sm">
+                    Realizar Pós-teste
+                </a>
             </div>
-            <i class="bi bi-trophy" style="font-size: 3rem; opacity: 0.2;"></i>
         </div>
+        {% else %}
+        <div class="alert alert-light border shadow-sm mb-5 d-flex align-items-center" style="border-radius: 12px;">
+            <i class="bi bi-info-circle-fill fs-3 text-secondary me-3"></i>
+            <div>
+                <strong class="text-dark">Avaliação Final Bloqueada:</strong> O Pós-teste será liberado quando você atingir <strong>70% de progresso</strong>. Continue avançando nas aulas!
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    {% if fez_pos_teste %}
+        <div class="alert alert-success shadow-sm mb-5 text-center" style="border-radius: 12px; border-left: 5px solid #198754;">
+            <i class="bi bi-check-circle-fill fs-4 me-2"></i> 
+            <strong>Parabéns!</strong> Você concluiu todas as etapas desta pesquisa. Muito obrigado pela sua contribuição científica!
+        </div>
+    {% endif %}
+
+    <!-- Título da Trilha -->
+    <div class="mb-4">
+        <h4 class="fw-bold mb-0">Sua trilha de aprendizagem</h4>
     </div>
-</div>
 
-<!-- Título da Trilha -->
-<div class="mb-4">
-    <h4 class="fw-bold mb-0">Sua trilha de aprendizagem</h4>
-</div>
-
-<!-- Grid de Módulos (Com Imagens de Capa) -->
-<div class="row g-4">
-    {% for modulo in modulos %}
-    <div class="col-md-4">
-        <div class="card-modulo {% if modulo.videoaulas.count == 0 %}opacity-50{% endif %}">
-            
-            <!-- Imagem de Capa do Módulo -->
+    <!-- Grid de Módulos (Seu código original mantido intacto) -->
+    <div class="row g-4">
+        {% for modulo in modulos %}
+        <div class="col-md-4">
+            <div class="card-modulo {% if modulo.videoaulas.count == 0 %}opacity-50{% endif %}">
+                
                 <!-- Imagem de Capa do Módulo -->
                 {% if modulo.imagem_capa %}
                     <img src="{{ modulo.imagem_capa.url }}" alt="{{ modulo.titulo }}" class="img-fluid" style="height: 160px; object-fit: cover; width: 100%;">
                 {% else %}
-                <!-- Placeholder caso o admin não tenha feito upload de imagem -->
-                <div style="height: 160px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; width: 100%;">
-                    <i class="bi bi-image text-muted fs-1 opacity-25"></i>
-                </div>
-            {% endif %}
+                    <div style="height: 160px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; width: 100%;">
+                        <i class="bi bi-image text-muted fs-1 opacity-25"></i>
+                    </div>
+                {% endif %}
 
-            <!-- Conteúdo do Card -->
-            <div class="p-4 d-flex flex-column" style="flex: 1;">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted small fw-semibold">Módulo 0{{ modulo.ordem }}</span>
-                    {% if modulo.videoaulas.count > 0 %}
-                        <span class="badge text-bg-success bg-opacity-10 text-success rounded-pill">Liberado</span>
-                    {% else %}
-                        <span class="text-muted small"><i class="bi bi-lock-fill"></i> Bloqueado</span>
-                    {% endif %}
+                <!-- Conteúdo do Card -->
+                <div class="p-4 d-flex flex-column" style="flex: 1;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold">Módulo 0{{ modulo.ordem }}</span>
+                        {% if modulo.videoaulas.count > 0 %}
+                            <span class="badge text-bg-success bg-opacity-10 text-success rounded-pill">Liberado</span>
+                        {% else %}
+                            <span class="text-muted small"><i class="bi bi-lock-fill"></i> Bloqueado</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="fw-bold mb-2">{{ modulo.titulo }}</h5>
+                    <p class="text-muted small mb-4">{{ modulo.descricao|truncatechars:60 }}</p>
+                    
+                    <div class="mt-auto">
+                        {% if modulo.videoaulas.count > 0 %}
+                            <a href="{% url 'detalhe_modulo' modulo.id %}" class="btn btn-outline-success w-100 rounded-pill fw-semibold">Acessar Módulo</a>
+                        {% else %}
+                            <button class="btn btn-light w-100 rounded-pill text-muted" disabled>Em breve</button>
+                        {% endif %}
+                    </div>
                 </div>
-                
-                <h5 class="fw-bold mb-2">{{ modulo.titulo }}</h5>
-                <p class="text-muted small mb-4">{{ modulo.descricao|truncatechars:60 }}</p>
-                
-                <div class="mt-auto">
-                    {% if modulo.videoaulas.count > 0 %}
-                        <a href="{% url 'detalhe_modulo' modulo.id %}" class="btn btn-outline-success w-100 rounded-pill fw-semibold">Acessar Módulo</a>
-                    {% else %}
-                        <button class="btn btn-light w-100 rounded-pill text-muted" disabled>Em breve</button>
-                    {% endif %}
-                </div>
+
             </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-light text-center py-5 border" style="border-radius: 12px;">
+                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                <p class="mt-3 text-muted">Nenhum módulo cadastrado ainda. Adicione conteúdos no painel admin.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
-        </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="alert alert-light text-center py-5 border">
-            Nenhum módulo cadastrado ainda. Adicione conteúdos no painel admin.
-        </div>
-    </div>
-    {% endfor %}
-</div>
+{% endif %}
+
+<!-- SCRIPT ANTI-CACHE: Atualiza a página automaticamente se o aluno usar o botão "Voltar" do navegador -->
+<script>
+    window.addEventListener('pageshow', function(event) {
+        // Se a página foi carregada do cache do navegador (botão voltar)
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+</script>
+
 {% endblock %}
