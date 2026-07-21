@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-w-$(5o_ov$w*k5c4#e1(_ld3wa)j%k#u9%6nc!73r3op)75)td')
 
 # SECURITY WARNING: O Render cria uma variável chamada RENDER. Se ela existir, desliga o DEBUG.
-DEBUG = 'RENDER' not in os.environ
+DEBUG = True
 
 # O Render também fornece o domínio oficial via variável de ambiente
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
