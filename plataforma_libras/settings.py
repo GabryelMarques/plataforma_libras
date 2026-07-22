@@ -138,6 +138,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Configuração moderna do Django para usar o WhiteNoise na compressão do CSS/JS
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
