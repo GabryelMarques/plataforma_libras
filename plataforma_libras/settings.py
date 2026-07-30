@@ -26,11 +26,13 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: Puxa o valor do .env. Em produção, defina DEBUG=False no ambiente.
 DEBUG = os.environ.get('DEBUG') == 'True'
 
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS",
-    "127.0.0.1,localhost"
-).split(",")
-
+# Puxa do .env, remove espaços em branco acidentais e tem o IP/Domínio como garantia de fallback
+ALLOWED_HOSTS = [
+    host.strip() for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "179.198.105.106,127.0.0.1,localhost,evolucaolibras.com.br,www.evolucaolibras.com.br"
+    ).split(",")
+]
 
 # Application definition
 
@@ -91,7 +93,7 @@ DATABASES = {
     }
 }
 
-# Se o Render injetar a URL de um banco de dados, o Django substitui o SQLite pelo PostgreSQL
+# Se o servidor injetar a URL de um banco de dados, o Django substitui o SQLite pelo PostgreSQL
 database_url = os.environ.get("DATABASE_URL")
 if database_url:
     DATABASES['default'] = dj_database_url.config(default=database_url, conn_max_age=600)
@@ -136,7 +138,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Inteligência de Ambiente: 
-# Se for Produção (Render), usa o WhiteNoise. Se for Local/Testes, usa o padrão.
+# Se for Produção, usa o WhiteNoise. Se for Local/Testes, usa o padrão.
 if DEBUG:
     STORAGES = {
         "default": {
@@ -158,6 +160,7 @@ else:
 
 # Impede que o WhiteNoise quebre a aplicação se faltar algum arquivo estático na produção
 WHITENOISE_MANIFEST_STRICT = False
+
 # Configuração para arquivos de mídia (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -179,11 +182,11 @@ DEFAULT_FROM_EMAIL = f'Plataforma Evolução Libras <{EMAIL_HOST_USER}>'
 # ==========================================
 if not DEBUG:
     # 1. Protege os cookies contra interceptação (W012 e W016)
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False  # TEMPORARIAMENTE DESATIVADO PARA O TESTE
+    CSRF_COOKIE_SECURE = False     # TEMPORARIAMENTE DESATIVADO PARA O TESTE
 
     # 2. Força o redirecionamento de HTTP para HTTPS (W008)
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False    # TEMPORARIAMENTE DESATIVADO PARA O TESTE
 
     # 3. Habilita o HSTS (W004) - Evita ataques de downgrade
     SECURE_HSTS_SECONDS = 31536000 # 1 ano
