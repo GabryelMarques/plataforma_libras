@@ -26,11 +26,10 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: Puxa o valor do .env. Em produção, defina DEBUG=False no ambiente.
 DEBUG = os.environ.get('DEBUG') == 'True'
 
-# O Render também fornece o domínio oficial via variável de ambiente
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+ALLOWED_HOSTS = os.getenv(
+    "ALLOWED_HOSTS",
+    "127.0.0.1,localhost"
+).split(",")
 
 
 # Application definition
@@ -122,7 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
