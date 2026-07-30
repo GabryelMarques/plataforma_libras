@@ -24,21 +24,21 @@
                         </div>
                     </div>
 
-                    <!-- CAIXA DE TEXTO DO TCLE (COM ROLAGEM) -->
+                    <!-- CAIXA DE TEXTO DO TCLE (TEXTO ENVIADO PELA DILI) -->
                     <div class="tcle-content bg-light border rounded-3 p-4 mb-4" style="max-height: 400px; overflow-y: auto;">
                         <h4 class="fw-bold mb-3">CONVITE PARA PARTICIPAÇÃO EM PESQUISA</h4>
                         
-                        <p>Você está sendo convidado(a) a participar da pesquisa intitulada <strong>"Evolução em Libras: [Título Completo do seu Mestrado]"</strong>, sob a responsabilidade do pesquisador [Seu Nome Completo] e orientação do(a) Prof(a). Dr(a). [Nome do Orientador], vinculada ao Programa de Pós-Graduação [Nome do Programa] da Universidade Federal do Tocantins (UFT).</p>
+                        <p>Você está sendo convidado(a) a participar da pesquisa intitulada <strong>Plataforma digital: Evolução em Libras</strong>, sob a responsabilidade da pesquisadora Dili Donald Freitas Costa e orientação do Prof. Dr. Miguel de Araújo Medeiros, vinculada ao Programa de Pós-Graduação em Propriedade Intelectual e Transferência de Tecnologia para Inovação da Universidade Federal do Tocantins (UFT).</p>
                         
                         <h5 class="fw-bold mt-4">1. Qual o objetivo da pesquisa?</h5>
-                        <p>[Explique aqui o que você quer descobrir ou avaliar com o uso da plataforma...]</p>
+                        <p>O objetivo desta pesquisa é desenvolver a plataforma EvoluçãoLibras, uma ferramenta digital criada para facilitar o ensino da Evolução Biológica para estudantes surdos. O ensino dessa disciplina frequentemente esbarra na complexidade de conceitos abstratos e na escassez de recursos pedagógicos adaptados. Diante disso, a plataforma busca traduzir e mediar esses conteúdos em Língua Brasileira de Sinais (Libras). A intenção é tornar o aprendizado visual, acessível e dinâmico. Assim, o projeto visa superar as barreiras de comunicação e garantir a compreensão efetiva dos processos evolutivos.</p>
                         
                         <h5 class="fw-bold mt-4">2. Como será a sua participação?</h5>
                         <p>A sua participação consistirá em acessar a plataforma, assistir às videoaulas em Libras e responder aos testes de conhecimento (pré-teste e pós-teste). Os dados de acesso e as respostas serão coletados automaticamente pelo sistema.</p>
                         
                         <h5 class="fw-bold mt-4">3. Quais são os riscos e benefícios?</h5>
                         <p><strong>Riscos:</strong> Os riscos envolvidos são mínimos, limitando-se ao cansaço natural durante a leitura ou resolução das atividades. Você poderá interromper a participação a qualquer momento.</p>
-                        <p><strong>Benefícios:</strong> Acesso a um material educacional inovador e gratuito, contribuindo para a melhoria do ensino de biologia para estudantes surdos.</p>
+                        <p><strong>Benefícios:</strong> Acesso a um material educacional inovador e gratuito, contribuindo para a melhoria do ensino de Evolução para estudantes surdos.</p>
                         
                         <h5 class="fw-bold mt-4">4. Garantia de Sigilo e Privacidade</h5>
                         <p>Garantimos que todas as suas informações pessoais (nome e e-mail) serão mantidas em absoluto sigilo. Os dados coletados serão utilizados exclusivamente para fins acadêmicos e publicados de forma anônima, impossibilitando a sua identificação.</p>
@@ -47,7 +47,7 @@
                         <p>A sua participação é totalmente voluntária. Você tem o direito de se recusar a participar ou retirar o seu consentimento a qualquer momento, sem nenhum tipo de penalidade ou prejuízo.</p>
 
                         <h5 class="fw-bold mt-4">6. Contatos</h5>
-                        <p>Em caso de dúvidas sobre a pesquisa, você pode contatar o pesquisador pelo e-mail: <strong>pesquisa@mail.uft.edu.br</strong>. Para dúvidas sobre ética na pesquisa, contate o Comitê de Ética em Pesquisa da UFT: [Email do CEP].</p>
+                        <p>Em caso de dúvidas sobre a pesquisa, você pode contatar o pesquisador pelo e-mail: <strong>dd@uft.edu.br</strong>. Para dúvidas sobre ética na pesquisa, contate o Comitê de Ética em Pesquisa da UFT: <strong>cep_uft@uft.edu.br</strong>.</p>
                     </div>
 
                     <!-- FORMULÁRIO DE ACEITE -->
@@ -55,7 +55,7 @@
                         {% csrf_token %}
                         
                         <div class="form-check mb-4 bg-white p-3 border rounded-3 border-secondary">
-                            <input class="form-check-input fs-5 ms-1 mt-2" type="checkbox" id="checkAceite" required>
+                            <input class="form-check-input fs-5 ms-1 mt-2" type="checkbox" id="checkAceite" name="aceite" value="True" required>
                             <label class="form-check-label fw-medium ms-2 ms-md-3" for="checkAceite">
                                 Declaro que li e compreendi as informações acima, tive a oportunidade de esclarecer minhas dúvidas e <strong>consinto livremente em participar desta pesquisa</strong>, autorizando a coleta e o uso dos meus dados.
                             </label>
@@ -80,33 +80,13 @@
 </div>
 
 <style>
-    /* Customizando a barra de rolagem da caixa do TCLE para ficar mais elegante */
-    .tcle-content::-webkit-scrollbar {
-        width: 8px;
-    }
-    .tcle-content::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-    .tcle-content::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-    }
-    .tcle-content::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }
+    .tcle-content::-webkit-scrollbar { width: 8px; }
+    .tcle-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .tcle-content::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    .tcle-content::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     
-    .bg-brand {
-        background-color: #0d9488 !important; /* Cor da sua marca */
-    }
-    .btn-brand {
-        background-color: #0d9488;
-        color: white;
-        border: none;
-    }
-    .btn-brand:hover {
-        background-color: #0f766e;
-        color: white;
-    }
+    .bg-brand { background-color: #0d9488 !important; }
+    .btn-brand { background-color: #0d9488; color: white; border: none; }
+    .btn-brand:hover { background-color: #0f766e; color: white; }
 </style>
 {% endblock %}

@@ -156,7 +156,18 @@
                                 {{ aluno.nome|make_list|first|upper }}
                             </div>
                             <div>
-                                <div class="fw-bold">{{ aluno.nome }}</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold">{{ aluno.nome }}</span>
+                                    {% if aluno.is_surdo %}
+                                        <span class="badge" style="background-color: rgba(15, 118, 110, 0.1); color: #0f766e; border: 1px solid rgba(15, 118, 110, 0.2); font-size: 0.65rem; padding: 0.35em 0.65em;">
+                                            Surdo(a)
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border" style="font-size: 0.65rem; padding: 0.35em 0.65em;">
+                                            Ouvinte
+                                        </span>
+                                    {% endif %}
+                                </div>
                                 <div class="text-muted small">{{ aluno.email }}</div>
                             </div>
                             <i class="bi bi-box-arrow-up-right text-primary opacity-50 ms-2 small" title="Abrir Raio-X"></i>

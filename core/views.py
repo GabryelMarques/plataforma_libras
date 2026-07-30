@@ -62,13 +62,19 @@ def home(request):
 
 @login_required
 def tcle_aceite(request):
+    if request.user.is_staff:
+        return redirect('painel_pesquisador')
+
+    if TCLEAceite.objects.filter(usuario=request.user, aceito=True).exists():
+        return redirect('dashboard')
+
     if request.method == 'POST':
-        TCLEAceite.objects.create(
+        TCLEAceite.objects.update_or_create(
             usuario=request.user,
-            aceito=True,
-            ip_aceite=get_client_ip(request)
+            defaults={'aceito': True, 'ip_aceite': get_client_ip(request)}
         )
         return redirect('dashboard')
+
     return render(request, 'tcle.html')
 
 @login_required(login_url='/login/')
@@ -291,6 +297,7 @@ def painel_pesquisador(request):
             'id': aluno.id,
             'aluno_id': aluno.id,
             'email': aluno.email,
+            'is_surdo': aluno.is_surdo,
             'data_cadastro': aluno.date_joined,
             'fez_pre': fez_pre,
             'fez_pos': fez_pos,
@@ -317,58 +324,94 @@ def painel_pesquisador(request):
 def exportar_dados_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     data_atual = timezone.now().strftime('%Y-%m-%d')
-    response['Content-Disposition'] = f'attachment; filename="dataset_libras_{data_atual}.csv"'
-    
+    response['Content-Disposition'] = f'attachment; filename="dataset_pesquisa_libras_{data_atual}.csv"'
+
     writer = csv.writer(response, delimiter=';')
-    writer.writerow(['Nome do Sujeito', 'E-mail', 'Data de Ingresso', 'Progresso da Intervenção (%)', 'Fez Pré-teste', 'Nota Pré-teste', 'Fez Pós-teste', 'Nota Pós-teste'])
-    
-    # 🚀 Mesma OTIMIZAÇÃO aplicada na exportação do CSV
-    alunos = Usuario.objects.filter(is_staff=False).prefetch_related(
-        'progressos_aulas', 
+
+    writer.writerow([
+        'ID do Sujeito',
+        'Nome Completo',
+        'E-mail',
+        'Perfil (Surdo/Ouvinte)',
+        'Escola/Instituição',
+        'Data de Ingresso',
+        'Último Acesso',
+        'Aulas Assistidas',
+        'Progresso da Intervenção (%)',
+        'Fez Pré-teste',
+        'Nota Pré-teste',
+        'Fez Pós-teste',
+        'Nota Pós-teste',
+        'Evolução (Variação de Nota)'
+    ])
+
+    alunos = Usuario.objects.filter(is_staff=False).select_related('escola').prefetch_related(
+        'progressos_aulas',
         'respostas_atividades__alternativa'
     )
+
     total_aulas = Videoaula.objects.filter(is_active=True).count()
-    
+
     perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE', is_active=True).values_list('id', flat=True))
     perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS', is_active=True).values_list('id', flat=True))
     total_q_pre = len(perguntas_pre_ids)
     total_q_pos = len(perguntas_pos_ids)
-    
+
     for aluno in alunos:
         aulas_assistidas = sum(1 for p in aluno.progressos_aulas.all() if p.concluida)
         progresso = int((aulas_assistidas / total_aulas) * 100) if total_aulas > 0 else 0
-        
+
+        ultimo_acesso = aluno.last_login.strftime('%d/%m/%Y %H:%M') if getattr(aluno, 'last_login', None) else 'Nunca acessou'
+        data_cadastro = aluno.date_joined.strftime('%d/%m/%Y') if getattr(aluno, 'date_joined', None) else 'N/A'
+
+        perfil_surdo = 'Surdo(a)' if getattr(aluno, 'is_surdo', False) else 'Ouvinte'
+        escola_nome = aluno.escola.nome if hasattr(aluno, 'escola') and aluno.escola else 'Não informada'
+
         respostas = aluno.respostas_atividades.all()
-        
+
         respostas_pre = [r for r in respostas if r.pergunta_id in perguntas_pre_ids]
         fez_pre = len(respostas_pre) > 0
         nota_pre = 0
         if fez_pre and total_q_pre > 0:
             acertos_pre = sum(1 for r in respostas_pre if r.alternativa and r.alternativa.is_correta)
             nota_pre = round((acertos_pre / total_q_pre) * 10, 1)
-            
+
         respostas_pos = [r for r in respostas if r.pergunta_id in perguntas_pos_ids]
         fez_pos = len(respostas_pos) > 0
         nota_pos = 0
         if fez_pos and total_q_pos > 0:
             acertos_pos = sum(1 for r in respostas_pos if r.alternativa and r.alternativa.is_correta)
             nota_pos = round((acertos_pos / total_q_pos) * 10, 1)
-        
-        data_cadastro = aluno.date_joined.strftime('%d/%m/%Y') if getattr(aluno, 'date_joined', None) else 'N/A' 
+
+        evolucao = 0
+        evolucao_str = 'N/A'
+        if fez_pre and fez_pos:
+            evolucao = round(nota_pos - nota_pre, 1)
+            prefixo = '+' if evolucao > 0 else ''
+            evolucao_str = f"{prefixo}{str(evolucao).replace('.', ',')}"
+
         fez_pre_str = 'Sim' if fez_pre else 'Não'
         fez_pos_str = 'Sim' if fez_pos else 'Não'
-        
+
+        nome_aluno = getattr(aluno, 'nome', getattr(aluno, 'first_name', 'Sem nome'))
+
         writer.writerow([
-            aluno.nome, 
-            aluno.email, 
-            data_cadastro, 
-            progresso, 
-            fez_pre_str, 
-            str(nota_pre).replace('.', ','), 
-            fez_pos_str, 
-            str(nota_pos).replace('.', ',')
+            aluno.id,
+            nome_aluno,
+            aluno.email,
+            perfil_surdo,
+            escola_nome,
+            data_cadastro,
+            ultimo_acesso,
+            f"{aulas_assistidas}/{total_aulas}",
+            progresso,
+            fez_pre_str,
+            str(nota_pre).replace('.', ','),
+            fez_pos_str,
+            str(nota_pos).replace('.', ','),
+            evolucao_str
         ])
-        
+
     return response
 
 @staff_member_required(login_url='/login/')

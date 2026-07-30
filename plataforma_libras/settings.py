@@ -13,15 +13,18 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: Usa a chave do ambiente ou uma padrão (local)
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-w-$(5o_ov$w*k5c4#e1(_ld3wa)j%k#u9%6nc!73r3op)75)td')
+# SECURITY WARNING: Agora a chave é obrigatória. Se não estiver no .env, o sistema acusa erro.
+SECRET_KEY = os.environ['SECRET_KEY']
 
-# SECURITY WARNING: O Render cria uma variável chamada RENDER. Se ela existir, desliga o DEBUG.
-DEBUG = True
+# SECURITY WARNING: Puxa o valor do .env. Em produção, defina DEBUG=False no ambiente.
+DEBUG = os.environ.get('DEBUG') == 'True'
 
 # O Render também fornece o domínio oficial via variável de ambiente
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
@@ -149,3 +152,14 @@ STORAGES = {
 # Configuração para arquivos de mídia (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ==========================================
+# CONFIGURAÇÕES DE DISPARO DE E-MAIL
+# ==========================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
+DEFAULT_FROM_EMAIL = f'Plataforma Evolução Libras <{EMAIL_HOST_USER}>'

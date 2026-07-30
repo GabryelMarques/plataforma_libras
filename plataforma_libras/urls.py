@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,6 +32,14 @@ urlpatterns = [
     path('cadastro/', cadastro, name='cadastro'),
     path('login/', fazer_login, name='login'),
     path('sair/', sair, name='sair'),
+    path('recuperar-senha/', auth_views.PasswordResetView.as_view(
+        template_name='recuperar_senha.html',
+        email_template_name='password_reset_email.html',
+        subject_template_name='password_reset_subject.txt'
+    ), name='password_reset'),
+    path('recuperar-senha/enviado/', auth_views.PasswordResetDoneView.as_view(template_name='recuperar_senha.html'), name='password_reset_done'),
+    path('recuperar-senha/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='recuperar_senha.html'), name='password_reset_confirm'),
+    path('recuperar-senha/concluida/', auth_views.PasswordResetCompleteView.as_view(template_name='recuperar_senha.html'), name='password_reset_complete'),
     path('dashboard/', dashboard, name='dashboard'),
     path('modulo/<int:modulo_id>/', detalhe_modulo, name='detalhe_modulo'),
     path('perfil/', meu_perfil, name='meu_perfil'),

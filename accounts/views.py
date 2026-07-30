@@ -17,6 +17,8 @@ def cadastro(request):
         escola_id = request.POST.get('escola')
         senha = request.POST.get('senha')
         confirmar_senha = request.POST.get('confirmar_senha')
+        is_surdo_html = request.POST.get('is_surdo')
+        is_surdo = True if is_surdo_html == 'True' else False
 
         # 1. Validação: Verifica se as senhas são iguais
         if senha != confirmar_senha:
@@ -41,7 +43,8 @@ def cadastro(request):
                 password=senha,
                 nome=nome,
                 escola=escola_instancia,
-                tipo='ESTUDANTE'
+                tipo='ESTUDANTE',
+                is_surdo=is_surdo
             )
             
             # 5. Loga o usuário automaticamente após o cadastro

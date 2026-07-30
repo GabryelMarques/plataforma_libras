@@ -22,8 +22,8 @@
         <div class="row g-0 split-layout">
             
             <!-- Coluna Esquerda: Branding -->
-            <div class="col-lg-5 col-xl-4 brand-section">
-                <!-- Logo em Código -->
+            <div class="col-lg-6 brand-section">
+                <!-- Logo -->
                 <div class="brand-logo">
                     <a href="/" class="d-flex align-items-center gap-2 text-decoration-none">
                         <i class="bi bi-book-half fs-3" style="color: var(--brand-green);"></i>
@@ -44,7 +44,7 @@
             </div>
 
             <!-- Coluna Direita: Formulário -->
-            <div class="col-lg-7 col-xl-8 form-section">
+            <div class="col-lg-6 form-section">
                 <div class="form-wrapper">
                     
                     <div class="form-header">
@@ -53,85 +53,110 @@
                     </div>
 
                     <div class="form-card">
-                        <!-- O form action será preenchido com a URL do Django depois -->
                         <form action="#" method="POST">
                             {% csrf_token %}
+                            
                             {% if messages %}
                                 {% for message in messages %}
-                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="background-color: #fee2e2; border-color: #f87171; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="float: right; background: none; border: none; font-weight: bold;">X</button>
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert" style="background-color: #fee2e2; border-color: #f87171; color: #991b1b; border-radius: 8px;">
+                                        <i class="bi bi-exclamation-circle me-2"></i> {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                     </div>
                                 {% endfor %}
                             {% endif %}
+                            
                             <!-- Nome Completo -->
-                            <label class="form-label">Nome completo</label>
-                            <div class="input-group-custom">
-                                <i class="bi bi-person icon-left"></i>
-                                <input type="text" name="nome" class="form-control" placeholder="Como podemos te chamar" required>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nome completo</label>
+                                <div class="input-group-custom">
+                                    <i class="bi bi-person icon-left"></i>
+                                    <input type="text" name="nome" class="form-control" placeholder="Como podemos te chamar" required>
+                                </div>
                             </div>
 
                             <!-- E-mail -->
-                            <label class="form-label">E-mail</label>
-                            <div class="input-group-custom">
-                                <i class="bi bi-envelope icon-left"></i>
-                                <input type="email" name="email" class="form-control" placeholder="seu@email.com" required>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">E-mail</label>
+                                <div class="input-group-custom">
+                                    <i class="bi bi-envelope icon-left"></i>
+                                    <input type="email" name="email" class="form-control" placeholder="seu@email.com" required>
+                                </div>
                             </div>
 
-                            <!-- Instituição de Ensino (Escola) - Será populado pelo Django -->
-                            <label class="form-label">Instituição de ensino (escola)</label>
-                            <div class="input-group-custom">
-                                <i class="bi bi-bank icon-left"></i>
-                                <select name="escola" class="form-select" required>
-                                    <option value="" disabled selected>Selecione sua escola</option>
-                                    
-                                    <!-- O Django vai gerar um option para cada escola no banco -->
-                                    {% for escola in escolas %}
-                                        <option value="{{ escola.id }}">{{ escola.nome }}</option>
-                                    {% endfor %}
-                                    
-                                </select>
+                            <!-- Perfil do Usuário (Surdo/Ouvinte) -->
+                            <div class="mb-3 p-3 bg-light rounded-3 border">
+                                <label class="form-label fw-semibold mb-2">Você é surdo(a)?</label>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="is_surdo" id="surdo_sim" value="True" checked required>
+                                        <label class="form-check-label" for="surdo_sim">
+                                            Sim
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="is_surdo" id="surdo_nao" value="False" required>
+                                        <label class="form-check-label" for="surdo_nao">
+                                            Não (Sou ouvinte)
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="row">
+                            <!-- Instituição de Ensino -->
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Instituição de ensino (escola)</label>
+                                <div class="input-group-custom">
+                                    <i class="bi bi-bank icon-left"></i>
+                                    <select name="escola" class="form-select" required>
+                                        <option value="" disabled selected>Selecione sua escola</option>
+                                        {% for escola in escolas %}
+                                            <option value="{{ escola.id }}">{{ escola.nome }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
                                 <!-- Senha -->
-                                <div class="col-md-6">
-                                    <label class="form-label">Senha</label>
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label class="form-label fw-semibold">Senha</label>
                                     <div class="input-group-custom">
                                         <i class="bi bi-lock icon-left"></i>
-                                        <input type="password" name="senha" class="form-control" id="senha" placeholder="••••••••" required>
-                                        <i class="bi bi-eye toggle-password" onclick="togglePassword('senha', this)"></i>
+                                        <input type="password" name="senha" class="form-control" id="senha" placeholder="••••••••" minlength="8" required>
+                                        <i class="bi bi-eye toggle-password" onclick="togglePassword('senha', this)" style="cursor: pointer;"></i>
                                     </div>
                                 </div>
                                 
                                 <!-- Confirmar Senha -->
                                 <div class="col-md-6">
-                                    <label class="form-label">Confirmar senha</label>
+                                    <label class="form-label fw-semibold">Confirmar senha</label>
                                     <div class="input-group-custom">
                                         <i class="bi bi-lock icon-left"></i>
-                                        <input type="password" name="confirmar_senha" class="form-control" id="confirmar_senha" placeholder="••••••••" required>
-                                        <i class="bi bi-eye toggle-password" onclick="togglePassword('confirmar_senha', this)"></i>
+                                        <input type="password" name="confirmar_senha" class="form-control" id="confirmar_senha" placeholder="••••••••" minlength="8" required>
+                                        <i class="bi bi-eye toggle-password" onclick="togglePassword('confirmar_senha', this)" style="cursor: pointer;"></i>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Termos
-                            <div class="form-check">
+                            <!-- Termos e Ética -->
+                            <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="termos" required>
-                                <label class="form-check-label" for="termos">
-                                    Li e concordo com os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a>.
+                                <label class="form-check-label text-muted" style="font-size: 0.9rem;" for="termos">
+                                    Li e concordo com o <a href="#" class="text-decoration-none fw-semibold">Termo de Consentimento</a> para participação nesta pesquisa.
                                 </label>
-                            </div> -->
+                            </div>
 
                             <!-- Submit -->
-                            <button type="submit" class="btn-brand">Criar Conta</button>
+                            <button type="submit" class="btn-brand w-100 py-2 fs-5 fw-semibold shadow-sm">Criar Conta</button>
 
                             <!-- Link para Login -->
-                            <p class="text-center mt-3">Já tem uma conta? <a href="{% url 'login' %}">Faça login</a></p>
+                            <p class="text-center mt-4 text-muted">
+                                Já tem uma conta? <a href="{% url 'login' %}" class="fw-semibold text-decoration-none">Faça login</a>
+                            </p>
                         </form>
                     </div>
 
-                    <div class="page-footer">
+                    <div class="page-footer text-center mt-4 text-muted" style="font-size: 0.85rem;">
                         Projeto de Pesquisa • Universidade Federal do Tocantins
                     </div>
 

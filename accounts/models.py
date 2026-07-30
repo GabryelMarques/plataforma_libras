@@ -24,6 +24,11 @@ class Usuario(AbstractUser):
     
     tipo = models.CharField(max_length=15, choices=TIPO_CHOICES, default='ESTUDANTE', verbose_name="Tipo de Usuário")
 
+    is_surdo = models.BooleanField(
+        default=True, 
+        verbose_name="É surdo(a)?"
+    )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'nome']
 

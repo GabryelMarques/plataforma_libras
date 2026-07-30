@@ -28,6 +28,18 @@ class SegurancaTCLETest(TestCase):
         # O sistema permite o acesso e carrega a tela com sucesso (Código 200 OK)
         self.assertEqual(response.status_code, 200)
 
+    def test_tcle_aceite_nao_cria_duplicidade_e_redireciona(self):
+        """Garante que o aceite do TCLE seja salvo uma única vez e não duplicate registros."""
+        self.client.login(email='tcle@teste.com', password='senha123')
+
+        response = self.client.post(reverse('tcle_aceite'))
+        self.assertRedirects(response, reverse('dashboard'))
+        self.assertEqual(TCLEAceite.objects.filter(usuario=self.aluno).count(), 1)
+
+        response = self.client.post(reverse('tcle_aceite'))
+        self.assertRedirects(response, reverse('dashboard'))
+        self.assertEqual(TCLEAceite.objects.filter(usuario=self.aluno).count(), 1)
+
 class PainelPesquisadorTests(TestCase):
     def test_painel_pesquisador_renders_student_link(self):
         """Garante que o painel do pesquisador carrega os dados dos alunos"""
