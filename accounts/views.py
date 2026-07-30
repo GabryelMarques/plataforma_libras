@@ -4,7 +4,7 @@ from django.contrib import messages
 from .models import Escola, Usuario
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-
+from core.views import tcle_required
 
 def cadastro(request):
     # Puxa as escolas para preencher o select
@@ -86,5 +86,6 @@ def sair(request):
 
 
 @login_required(login_url='/login/')
+@tcle_required
 def meu_perfil(request):
     return render(request, 'perfil.html')

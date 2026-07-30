@@ -163,13 +163,19 @@ def detalhe_modulo(request, modulo_id):
 @login_required(login_url='/login/')
 @tcle_required
 def assistir_aula(request, aula_id):
-    aula = get_object_or_404(Videoaula, id=aula_id)
+    # PROTEÇÃO 1: Só acessa se a aula existir E estiver ativa!
+    aula = get_object_or_404(Videoaula, id=aula_id, is_active=True)
     
-    pre_teste = aula.modulo.atividades.filter(tipo='PRE').first()
-    if pre_teste and pre_teste.perguntas.exists():
-        fez_pre_teste = RespostaAluno.objects.filter(aluno=request.user, pergunta__atividade=pre_teste).exists()
-        if not fez_pre_teste:
-            return redirect('detalhe_modulo', modulo_id=aula.modulo.id)
+    # PROTEÇÃO 2: Bloqueia acesso à aula se houver Pré-teste (Global ou do Módulo) pendente
+    pre_teste_global = Atividade.objects.filter(tipo='PRE', modulo__isnull=True).first()
+    pre_teste_modulo = aula.modulo.atividades.filter(tipo='PRE').first()
+    
+    for pre_teste in [pre_teste_global, pre_teste_modulo]:
+        if pre_teste and pre_teste.perguntas.exists():
+            fez_pre_teste = RespostaAluno.objects.filter(aluno=request.user, pergunta__atividade=pre_teste).exists()
+            if not fez_pre_teste:
+                messages.warning(request, "Atenção: Você precisa realizar o Pré-teste antes de assistir às aulas.")
+                return redirect('dashboard')
 
     progresso, created = ProgressoAula.objects.get_or_create(aluno=request.user, aula=aula)
     progresso.save() 
@@ -187,21 +193,40 @@ def assistir_aula(request, aula_id):
 def responder_atividade(request, atividade_id):
     atividade = get_object_or_404(Atividade, id=atividade_id)
     
-    if atividade.tipo == 'POS' and atividade.modulo:
-        aulas = atividade.modulo.videoaulas.all()
-        aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=atividade.modulo, concluida=True).count()
-        if aulas.count() > 0 and aulas_concluidas < aulas.count():
-            return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
+    # PROTEÇÃO 3: Controle estrito de liberação do Pós-teste
+    if atividade.tipo == 'POS':
+        if atividade.modulo:
+            # Regra para Pós-teste de Módulo: 100% das aulas daquele módulo
+            aulas = atividade.modulo.videoaulas.filter(is_active=True)
+            aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=atividade.modulo, concluida=True).count()
+            if aulas.count() > 0 and aulas_concluidas < aulas.count():
+                messages.warning(request, "Conclua todas as aulas deste módulo para liberar o Pós-teste.")
+                return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
+        else:
+            # Regra para Pós-teste GLOBAL: 70% de todas as aulas do sistema
+            total_aulas = Videoaula.objects.filter(is_active=True).count()
+            aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, concluida=True).count()
+            progresso_geral = int((aulas_concluidas / total_aulas) * 100) if total_aulas > 0 else 0
+            
+            if progresso_geral < 70:
+                messages.warning(request, "Você precisa atingir 70% de progresso no curso para liberar a avaliação final.")
+                return redirect('dashboard')
 
     perguntas = atividade.perguntas.filter(is_active=True).prefetch_related('alternativas', 'itens_associacao')
     
+    # PROTEÇÃO 4: Expulsa da tela quem tentar acessar um teste já finalizado
     ja_respondeu = False
     if perguntas.exists():
         ja_respondeu_multipla = RespostaAluno.objects.filter(aluno=request.user, pergunta=perguntas.first()).exists()
         ja_respondeu_assoc = RespostaAssociacaoAluno.objects.filter(aluno=request.user, pergunta=perguntas.first()).exists()
         ja_respondeu = ja_respondeu_multipla or ja_respondeu_assoc
+        
+    if ja_respondeu:
+        messages.info(request, "Você já enviou as respostas para esta avaliação!")
+        return redirect('dashboard')
 
-    if request.method == 'POST' and not ja_respondeu:
+    # ===== (A PARTIR DAQUI O SEU CÓDIGO CONTINUA EXATAMENTE IGUAL) =====
+    if request.method == 'POST':
         for pergunta in perguntas:
             if pergunta.tipo_pergunta == 'MULTIPLA':
                 alternativa_id = request.POST.get(f'pergunta_{pergunta.id}')
@@ -219,7 +244,6 @@ def responder_atividade(request, atividade_id):
                             item_a=item,
                             resposta_aluno_coluna_b=resposta_b
                         )
-        # Se tem módulo, volta para o módulo; senão volta para dashboard
         if atividade.modulo:
             return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
         else:
@@ -463,8 +487,8 @@ def busca_global_ajax(request):
     return JsonResponse({'resultados': resultados})
 
 @staff_member_required(login_url='/login/')
-def detalhe_participante(request, aluno_id):
-    aluno = get_object_or_404(Usuario, id=aluno_id)
+def detalhe_participante(request, aluno_id,):
+    aluno = get_object_or_404(Usuario, id=aluno_id, is_staff=False)
     
     if request.method == 'POST':
         acao = request.POST.get('acao')

@@ -129,26 +129,36 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-# Static files (CSS, JavaScript, Images)
+# ==========================================
+# ARQUIVOS ESTÁTICOS (CSS, JS, Imagens)
+# ==========================================
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-
-# Local onde o comando collectstatic vai juntar os arquivos no servidor
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Configuração moderna do Django para usar o WhiteNoise na compressão do CSS/JS
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+# Inteligência de Ambiente: 
+# Se for Produção (Render), usa o WhiteNoise. Se for Local/Testes, usa o padrão.
+if DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
+# Impede que o WhiteNoise quebre a aplicação se faltar algum arquivo estático na produção
+WHITENOISE_MANIFEST_STRICT = False
 # Configuração para arquivos de mídia (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -163,3 +173,20 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
 DEFAULT_FROM_EMAIL = f'Plataforma Evolução Libras <{EMAIL_HOST_USER}>'
+
+
+# ==========================================
+# CONFIGURAÇÕES DE SEGURANÇA PARA PRODUÇÃO
+# ==========================================
+if not DEBUG:
+    # 1. Protege os cookies contra interceptação (W012 e W016)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # 2. Força o redirecionamento de HTTP para HTTPS (W008)
+    SECURE_SSL_REDIRECT = True
+
+    # 3. Habilita o HSTS (W004) - Evita ataques de downgrade
+    SECURE_HSTS_SECONDS = 31536000 # 1 ano
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
