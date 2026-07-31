@@ -25,7 +25,11 @@ class ConfiguracaoSite(models.Model):
         help_text="Imagem de fundo da seção inicial."
     )
     
-    # Você pode adicionar outros campos futuramente (ex: link do instagram, email de contato)
+    # --- NOVO CAMPO ADICIONADO AQUI ---
+    opacidade_fundo = models.FloatField(
+        default=0.92,
+        help_text="Transparência do branco sobre a imagem. Use valores de 0.0 (totalmente transparente) a 1.0 (totalmente branco). Ex: 0.92 ou 0.85"
+    )
 
     class Meta:
         verbose_name = "Configuração do Site"
@@ -33,7 +37,6 @@ class ConfiguracaoSite(models.Model):
 
     def save(self, *args, **kwargs):
         # GARANTIA DE SINGLETON: Força a salvar sempre no ID 1. 
-        # Se tentar criar um novo, ele atualiza o primeiro.
         self.pk = 1 
         super(ConfiguracaoSite, self).save(*args, **kwargs)
 

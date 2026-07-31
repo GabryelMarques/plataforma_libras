@@ -7,12 +7,14 @@
 <!-- Hero Section -->
 <section class="hero-section position-relative">
 
-    <!-- CSS DINÂMICO PARA IMAGEM DE FUNDO DO BANCO -->
+<!-- CSS DINÂMICO PARA IMAGEM DE FUNDO DO BANCO -->
     {% if config_site and config_site.imagem_fundo %}
     <style>
         .hero-section {
-            background: linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)), 
-                        url('{{ config_site.imagem_fundo.url }}');
+            background: linear-gradient(
+                rgba(255, 255, 255, {{ config_site.opacidade_fundo|stringformat:"f" }}), 
+                rgba(255, 255, 255, {{ config_site.opacidade_fundo|stringformat:"f" }})
+            ), url('{{ config_site.imagem_fundo.url }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
