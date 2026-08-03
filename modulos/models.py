@@ -1,7 +1,34 @@
 from django.db import models
 from accounts.models import Usuario
 
-class Modulo(models.Model):
+
+class ActiveQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_active=True)
+
+
+class ActiveManager(models.Manager.from_queryset(ActiveQuerySet)):
+    use_for_related_fields = True
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
+class SoftDeleteModel(models.Model):
+    is_active = models.BooleanField(default=True, verbose_name="Ativo")
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
+    class Meta:
+        abstract = True
+
+    def soft_delete(self):
+        self.is_active = False
+        self.save(update_fields=['is_active'])
+
+
+class Modulo(SoftDeleteModel):
     titulo = models.CharField(max_length=255, verbose_name="Título")
     descricao = models.TextField(verbose_name="Descrição")
     ordem = models.IntegerField(default=1, verbose_name="Ordem de Exibição")
@@ -13,15 +40,21 @@ class Modulo(models.Model):
             return False
         return self.imagem_capa.storage.exists(self.imagem_capa.name)
 
-    def __str__(self):
-        return f"Módulo {self.ordem}: {self.titulo}"
+    @property
+    def qtd_videoaulas_ativas(self):
+        return self.videoaulas.active().count()
 
-class Videoaula(models.Model):
+    @property
+    def qtd_atividades_ativas(self):
+        return self.atividades.active().count()
+
+    def __str__(self):
+        status = "" if self.is_active else " [DESATIVADO]"
+        return f"Módulo {self.ordem}: {self.titulo}{status}"
+
+class Videoaula(SoftDeleteModel):
     modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='videoaulas')
     titulo = models.CharField(max_length=255, verbose_name="Título")
-    
-    # --- NOVA LINHA DE SEGURANÇA (SOFT DELETE) ---
-    is_active = models.BooleanField(default=True, verbose_name="Ativa (Visível para os alunos?)")
     
     video = models.FileField(upload_to="videos/", blank=True, null=True, verbose_name="Arquivo de Vídeo")
     thumbnail = models.ImageField(upload_to="thumbs/", blank=True, null=True, verbose_name="Miniatura (Thumbnail)")
@@ -33,7 +66,7 @@ class Videoaula(models.Model):
         status = "" if self.is_active else " [DESATIVADA]"
         return f"{self.titulo}{status}"
 
-class Atividade(models.Model):
+class Atividade(SoftDeleteModel):
     modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='atividades', null=True, blank=True)
     
     titulo = models.CharField(max_length=255, verbose_name="Título")
@@ -46,8 +79,13 @@ class Atividade(models.Model):
     )
     tipo = models.CharField(max_length=15, choices=TIPO_CHOICES, default='EXERCICIO')
 
+    @property
+    def qtd_perguntas_ativas(self):
+        return self.perguntas.active().count()
+
     def __str__(self):
-        return self.titulo
+        status = "" if self.is_active else " [DESATIVADA]"
+        return f"{self.titulo}{status}"
 
 # ==========================================
 # PROTEGIDO: Progresso do Aluno
@@ -73,11 +111,8 @@ class ProgressoAula(models.Model):
 # ==========================================
 # MOTOR DE TESTES/PROVAS
 # ==========================================
-class Pergunta(models.Model):
+class Pergunta(SoftDeleteModel):
     atividade = models.ForeignKey(Atividade, on_delete=models.CASCADE, related_name='perguntas')
-    
-    # --- NOVA LINHA DE SEGURANÇA (SOFT DELETE) ---
-    is_active = models.BooleanField(default=True, verbose_name="Ativa (Visível na prova?)")
     
     TIPO_PERGUNTA_CHOICES = (
         ('MULTIPLA', 'Múltipla Escolha'),
@@ -95,13 +130,14 @@ class Pergunta(models.Model):
         status = "" if self.is_active else " [DESATIVADA]"
         return f"Q{self.ordem} ({self.get_tipo_pergunta_display()}): {self.enunciado[:50]}...{status}"
 
-class Alternativa(models.Model):
+class Alternativa(SoftDeleteModel):
     pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE, related_name='alternativas')
     texto = models.CharField(max_length=255, verbose_name="Texto da Alternativa")
     is_correta = models.BooleanField(default=False, verbose_name="É a resposta correta?")
 
     def __str__(self):
-        return f"[{'X' if self.is_correta else ' '}] {self.texto}"
+        status = "" if self.is_active else " [EXCLUÍDA]"
+        return f"[{'X' if self.is_correta else ' '}] {self.texto}{status}"
 
 # ==========================================
 # PROTEGIDO: Respostas do Aluno (Múltipla Escolha)
@@ -122,13 +158,14 @@ class RespostaAluno(models.Model):
 # ==========================================
 # MOTOR DE ASSOCIATIVIDADE (LIGAR COLUNAS)
 # ==========================================
-class ItemAssociacao(models.Model):
+class ItemAssociacao(SoftDeleteModel):
     pergunta = models.ForeignKey(Pergunta, on_delete=models.CASCADE, related_name='itens_associacao')
     coluna_a = models.CharField(max_length=255, verbose_name="Item Esquerdo (Fixo)")
     coluna_b = models.CharField(max_length=255, verbose_name="Item Direito (Correspondente Correto)")
 
     def __str__(self):
-        return f"{self.coluna_a} -> {self.coluna_b}"
+        status = "" if self.is_active else " [EXCLUÍDA]"
+        return f"{self.coluna_a} -> {self.coluna_b}{status}"
 
 # ==========================================
 # PROTEGIDO: Respostas do Aluno (Associação)

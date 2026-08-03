@@ -41,3 +41,24 @@ class PesquisaDataIntegrityTest(TestCase):
         # Tenta deletar a alternativa
         with self.assertRaises(ProtectedError):
             self.alternativa.delete()
+
+    def test_soft_delete_desativa_registro_sem_apagar_historico(self):
+        """Garante que o soft delete desativa o registro sem remover o objeto do banco."""
+        self.aula.soft_delete()
+
+        self.assertFalse(self.aula.is_active)
+        self.assertTrue(Videoaula.all_objects.filter(pk=self.aula.pk).exists())
+
+    def test_manager_ativo_filtra_registros_desativados(self):
+        """Garante que o manager ativo não devolve registros desativados."""
+        self.aula.soft_delete()
+
+        self.assertFalse(Videoaula.objects.filter(pk=self.aula.pk).exists())
+        self.assertTrue(Videoaula.all_objects.filter(pk=self.aula.pk).exists())
+
+    def test_qtd_perguntas_ativas_conta_apenas_itens_ativos(self):
+        """Garante que a contagem de questões ativas reflita apenas perguntas visíveis."""
+        Pergunta.objects.create(atividade=self.atividade, enunciado="Pergunta ativa", tipo_pergunta="MULTIPLA", is_active=True)
+        Pergunta.objects.create(atividade=self.atividade, enunciado="Pergunta desativada", tipo_pergunta="MULTIPLA", is_active=False)
+
+        self.assertEqual(self.atividade.qtd_perguntas_ativas, 2)

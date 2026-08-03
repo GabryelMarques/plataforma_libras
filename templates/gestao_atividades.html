@@ -64,7 +64,7 @@
                     <td class="py-4 text-center">
                         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
                             <!-- Mais pra frente vamos colocar o count() real aqui -->
-                            <i class="bi bi-list-task text-muted me-1"></i> {{ atividade.perguntas.count }}
+                            <i class="bi bi-list-task text-muted me-1"></i> {{ atividade.qtd_perguntas_ativas }}
                         </span>
                     </td>
                     
@@ -94,8 +94,8 @@
                                     <h4 class="fw-bold mb-2">Excluir Avaliação?</h4>
                                     <p class="text-muted mb-4">Tem certeza que deseja apagar a avaliação <strong>{{ atividade.titulo }}</strong>?</p>
                                     
-                                    <div class="alert alert-danger small text-start mb-4" style="border-radius: 8px;">
-                                        <i class="bi bi-info-circle-fill me-1"></i> Esta ação apagará permanentemente TODAS as questões e alternativas vinculadas a este teste!
+                                    <div class="alert alert-warning small text-start mb-4" style="border-radius: 8px;">
+                                        <i class="bi bi-info-circle-fill me-1"></i> Esta ação <strong>desativará</strong> a avaliação e preservará o histórico das respostas já registradas.
                                     </div>
                                     
                                     <div class="d-flex justify-content-center gap-2">

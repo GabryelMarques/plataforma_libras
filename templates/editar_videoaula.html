@@ -66,9 +66,9 @@
                     <div class="col-md-6 mb-4 mb-md-0">
                         <label for="miniatura" class="form-label fw-bold text-dark">Nova Miniatura</label>
                         <input type="file" class="form-control bg-light border-0" id="miniatura" name="miniatura" accept="image/*">
-                        {% if aula.miniatura %}
+                        {% if aula.thumbnail %}
                             <div class="form-text small text-success mt-2">
-                                <i class="bi bi-image"></i> Já possui miniatura: <a href="{{ aula.miniatura.url }}" target="_blank">Ver atual</a>
+                                <i class="bi bi-image"></i> Já possui miniatura: <a href="{{ aula.thumbnail.url }}" target="_blank">Ver atual</a>
                             </div>
                         {% endif %}
                     </div>
@@ -76,9 +76,9 @@
                     <div class="col-md-6">
                         <label for="arquivo_video" class="form-label fw-bold text-dark">Novo Arquivo de Vídeo</label>
                         <input type="file" class="form-control bg-light border-0" id="arquivo_video" name="arquivo_video" accept="video/*">
-                        {% if aula.arquivo_video %}
+                        {% if aula.video %}
                             <div class="form-text small text-success mt-2">
-                                <i class="bi bi-film"></i> Já possui vídeo: <a href="{{ aula.arquivo_video.url }}" target="_blank">Ver atual</a>
+                                <i class="bi bi-film"></i> Já possui vídeo: <a href="{{ aula.video.url }}" target="_blank">Ver atual</a>
                             </div>
                         {% endif %}
                     </div>

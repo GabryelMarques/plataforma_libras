@@ -134,7 +134,7 @@
     <div class="row g-4">
         {% for modulo in modulos %}
         <div class="col-md-4">
-            <div class="card-modulo {% if modulo.videoaulas.count == 0 %}opacity-50{% endif %}">
+            <div class="card-modulo {% if modulo.qtd_videoaulas_ativas == 0 %}opacity-50{% endif %}">
                 
                 <!-- Imagem de Capa do Módulo -->
                 {% if modulo.imagem_capa %}
@@ -149,7 +149,7 @@
                 <div class="p-4 d-flex flex-column" style="flex: 1;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="text-muted small fw-semibold">Módulo 0{{ modulo.ordem }}</span>
-                        {% if modulo.videoaulas.count > 0 %}
+                        {% if modulo.qtd_videoaulas_ativas > 0 %}
                             <span class="badge text-bg-success bg-opacity-10 text-success rounded-pill">Liberado</span>
                         {% else %}
                             <span class="text-muted small"><i class="bi bi-lock-fill"></i> Bloqueado</span>
@@ -160,7 +160,7 @@
                     <p class="text-muted small mb-4">{{ modulo.descricao|truncatechars:60 }}</p>
                     
                     <div class="mt-auto">
-                        {% if modulo.videoaulas.count > 0 %}
+                        {% if modulo.qtd_videoaulas_ativas > 0 %}
                             <a href="{% url 'detalhe_modulo' modulo.id %}" class="btn btn-outline-success w-100 rounded-pill fw-semibold">Acessar Módulo</a>
                         {% else %}
                             <button class="btn btn-light w-100 rounded-pill text-muted" disabled>Em breve</button>

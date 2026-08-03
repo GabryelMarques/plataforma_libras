@@ -6,7 +6,7 @@ import csv
 from datetime import timedelta
 from functools import wraps
 
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -51,8 +51,10 @@ def tcle_required(view_func):
 
 def home(request):
     config_site = ConfiguracaoSite.objects.first()
-    # prefetch_related otimiza a contagem no HTML
-    modulos = Modulo.objects.prefetch_related('videoaulas', 'atividades').order_by('ordem')
+    modulos = Modulo.objects.active().prefetch_related(
+        Prefetch('videoaulas', queryset=Videoaula.objects.active()),
+        Prefetch('atividades', queryset=Atividade.objects.active()),
+    ).order_by('ordem')
     
     context = {
         'modulos': modulos,
@@ -84,19 +86,22 @@ def dashboard(request):
     aluno = request.user
     
     # --- 1. LÓGICA DE PROGRESSO (Que você já tinha) ---
-    total_aulas = Videoaula.objects.count()
-    aulas_concluidas = ProgressoAula.objects.filter(aluno=aluno, concluida=True).count()
+    total_aulas = Videoaula.objects.active().count()
+    aulas_concluidas = ProgressoAula.objects.filter(aluno=aluno, concluida=True, aula__is_active=True).count()
     
     progresso_geral = 0
     if total_aulas > 0:
         progresso_geral = int((aulas_concluidas / total_aulas) * 100)
         
     ultimo_acesso = ProgressoAula.objects.filter(aluno=aluno).order_by('-ultimo_acesso').first()
-    modulos = Modulo.objects.prefetch_related('videoaulas', 'atividades').order_by('ordem')
+    modulos = Modulo.objects.active().prefetch_related(
+        Prefetch('videoaulas', queryset=Videoaula.objects.active()),
+        Prefetch('atividades', queryset=Atividade.objects.active()),
+    ).order_by('ordem')
     
     # --- 2. NOVA LÓGICA DAS AVALIAÇÕES GLOBAIS ---
-    pre_teste = Atividade.objects.filter(tipo='PRE').first()
-    pos_teste = Atividade.objects.filter(tipo='POS').first()
+    pre_teste = Atividade.objects.active().filter(tipo='PRE').first()
+    pos_teste = Atividade.objects.active().filter(tipo='POS').first()
     
     fez_pre_teste = False
     if pre_teste:
@@ -127,11 +132,11 @@ def dashboard(request):
 @login_required(login_url='/login/')
 @tcle_required
 def detalhe_modulo(request, modulo_id):
-    modulo = get_object_or_404(Modulo, id=modulo_id)
-    aulas = modulo.videoaulas.filter(is_active=True).order_by('ordem')
-    atividades = modulo.atividades.all()
+    modulo = get_object_or_404(Modulo.objects.active(), id=modulo_id)
+    aulas = modulo.videoaulas.active().order_by('ordem')
+    atividades = modulo.atividades.active()
     
-    progressos = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=modulo)
+    progressos = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=modulo, aula__is_active=True)
     aulas_concluidas_ids = progressos.filter(concluida=True).values_list('aula_id', flat=True)
     
     pre_teste = atividades.filter(tipo='PRE').first()
@@ -164,11 +169,11 @@ def detalhe_modulo(request, modulo_id):
 @tcle_required
 def assistir_aula(request, aula_id):
     # PROTEÇÃO 1: Só acessa se a aula existir E estiver ativa!
-    aula = get_object_or_404(Videoaula, id=aula_id, is_active=True)
+    aula = get_object_or_404(Videoaula.objects.active(), id=aula_id)
     
     # PROTEÇÃO 2: Bloqueia acesso à aula se houver Pré-teste (Global ou do Módulo) pendente
-    pre_teste_global = Atividade.objects.filter(tipo='PRE', modulo__isnull=True).first()
-    pre_teste_modulo = aula.modulo.atividades.filter(tipo='PRE').first()
+    pre_teste_global = Atividade.objects.active().filter(tipo='PRE', modulo__isnull=True).first()
+    pre_teste_modulo = aula.modulo.atividades.active().filter(tipo='PRE').first()
     
     for pre_teste in [pre_teste_global, pre_teste_modulo]:
         if pre_teste and pre_teste.perguntas.exists():
@@ -191,35 +196,39 @@ def assistir_aula(request, aula_id):
 @login_required(login_url='/login/')
 @tcle_required
 def responder_atividade(request, atividade_id):
-    atividade = get_object_or_404(Atividade, id=atividade_id)
+    atividade = get_object_or_404(Atividade.objects.active(), id=atividade_id)
     
     # PROTEÇÃO 3: Controle estrito de liberação do Pós-teste
     if atividade.tipo == 'POS':
         if atividade.modulo:
             # Regra para Pós-teste de Módulo: 100% das aulas daquele módulo
-            aulas = atividade.modulo.videoaulas.filter(is_active=True)
-            aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=atividade.modulo, concluida=True).count()
+            aulas = atividade.modulo.videoaulas.active()
+            aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, aula__modulo=atividade.modulo, concluida=True, aula__is_active=True).count()
             if aulas.count() > 0 and aulas_concluidas < aulas.count():
                 messages.warning(request, "Conclua todas as aulas deste módulo para liberar o Pós-teste.")
                 return redirect('detalhe_modulo', modulo_id=atividade.modulo.id)
         else:
             # Regra para Pós-teste GLOBAL: 70% de todas as aulas do sistema
-            total_aulas = Videoaula.objects.filter(is_active=True).count()
-            aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, concluida=True).count()
+            total_aulas = Videoaula.objects.active().count()
+            aulas_concluidas = ProgressoAula.objects.filter(aluno=request.user, concluida=True, aula__is_active=True).count()
             progresso_geral = int((aulas_concluidas / total_aulas) * 100) if total_aulas > 0 else 0
             
             if progresso_geral < 70:
                 messages.warning(request, "Você precisa atingir 70% de progresso no curso para liberar a avaliação final.")
                 return redirect('dashboard')
 
-    perguntas = atividade.perguntas.filter(is_active=True).prefetch_related('alternativas', 'itens_associacao')
+    perguntas = atividade.perguntas.active().prefetch_related(
+        Prefetch('alternativas', queryset=Alternativa.objects.active()),
+        Prefetch('itens_associacao', queryset=ItemAssociacao.objects.active()),
+    )
     
     # PROTEÇÃO 4: Expulsa da tela quem tentar acessar um teste já finalizado
     ja_respondeu = False
     if perguntas.exists():
-        ja_respondeu_multipla = RespostaAluno.objects.filter(aluno=request.user, pergunta=perguntas.first()).exists()
-        ja_respondeu_assoc = RespostaAssociacaoAluno.objects.filter(aluno=request.user, pergunta=perguntas.first()).exists()
-        ja_respondeu = ja_respondeu_multipla or ja_respondeu_assoc
+        ja_respondeu = (
+            RespostaAluno.objects.filter(aluno=request.user, pergunta__atividade=atividade).exists()
+            or RespostaAssociacaoAluno.objects.filter(aluno=request.user, pergunta__atividade=atividade).exists()
+        )
         
     if ja_respondeu:
         messages.info(request, "Você já enviou as respostas para esta avaliação!")
@@ -231,11 +240,11 @@ def responder_atividade(request, atividade_id):
             if pergunta.tipo_pergunta == 'MULTIPLA':
                 alternativa_id = request.POST.get(f'pergunta_{pergunta.id}')
                 if alternativa_id:
-                    alternativa = get_object_or_404(Alternativa, id=alternativa_id)
+                    alternativa = get_object_or_404(Alternativa.objects.active(), id=alternativa_id)
                     RespostaAluno.objects.create(aluno=request.user, pergunta=pergunta, alternativa=alternativa)
             
             elif pergunta.tipo_pergunta == 'ASSOC':
-                for item in pergunta.itens_associacao.all():
+                for item in pergunta.itens_associacao.active():
                     resposta_b = request.POST.get(f'assoc_{pergunta.id}_{item.id}')
                     if resposta_b:
                         RespostaAssociacaoAluno.objects.create(
@@ -251,7 +260,7 @@ def responder_atividade(request, atividade_id):
 
     for pergunta in perguntas:
         if pergunta.tipo_pergunta == 'ASSOC':
-            opcoes_b = list(pergunta.itens_associacao.values_list('coluna_b', flat=True))
+            opcoes_b = list(pergunta.itens_associacao.active().values_list('coluna_b', flat=True))
             random.shuffle(opcoes_b)
             pergunta.opcoes_embaralhadas = opcoes_b
 
@@ -276,11 +285,11 @@ def painel_pesquisador(request):
         alunos = alunos.filter(Q(nome__icontains=query) | Q(email__icontains=query))
         
     total_alunos = alunos.count()
-    total_aulas_sistema = Videoaula.objects.filter(is_active=True).count()
+    total_aulas_sistema = Videoaula.objects.active().count()
     
     # Busca apenas os IDs das perguntas em uma única consulta rápida
-    perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE', is_active=True).values_list('id', flat=True))
-    perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS', is_active=True).values_list('id', flat=True))
+    perguntas_pre_ids = set(Pergunta.objects.active().filter(atividade__tipo='PRE').values_list('id', flat=True))
+    perguntas_pos_ids = set(Pergunta.objects.active().filter(atividade__tipo='POS').values_list('id', flat=True))
     
     total_q_pre = len(perguntas_pre_ids)
     total_q_pos = len(perguntas_pos_ids)
@@ -298,7 +307,7 @@ def painel_pesquisador(request):
             alunos_concluidos += 1
             
         # Puxa todas as respostas da memória RAM
-        respostas = aluno.respostas_atividades.all()
+        respostas = aluno.respostas_atividades.filter(pergunta__is_active=True, alternativa__is_active=True)
         
         # B/C. Avaliação Pré-teste Rápida
         respostas_pre = [r for r in respostas if r.pergunta_id in perguntas_pre_ids]
@@ -374,10 +383,10 @@ def exportar_dados_csv(request):
         'respostas_atividades__alternativa'
     )
 
-    total_aulas = Videoaula.objects.filter(is_active=True).count()
+    total_aulas = Videoaula.objects.active().count()
 
-    perguntas_pre_ids = set(Pergunta.objects.filter(atividade__tipo='PRE', is_active=True).values_list('id', flat=True))
-    perguntas_pos_ids = set(Pergunta.objects.filter(atividade__tipo='POS', is_active=True).values_list('id', flat=True))
+    perguntas_pre_ids = set(Pergunta.objects.active().filter(atividade__tipo='PRE').values_list('id', flat=True))
+    perguntas_pos_ids = set(Pergunta.objects.active().filter(atividade__tipo='POS').values_list('id', flat=True))
     total_q_pre = len(perguntas_pre_ids)
     total_q_pos = len(perguntas_pos_ids)
 
@@ -391,7 +400,7 @@ def exportar_dados_csv(request):
         perfil_surdo = 'Surdo(a)' if getattr(aluno, 'is_surdo', False) else 'Ouvinte'
         escola_nome = aluno.escola.nome if hasattr(aluno, 'escola') and aluno.escola else 'Não informada'
 
-        respostas = aluno.respostas_atividades.all()
+        respostas = aluno.respostas_atividades.filter(pergunta__is_active=True, alternativa__is_active=True)
 
         respostas_pre = [r for r in respostas if r.pergunta_id in perguntas_pre_ids]
         fez_pre = len(respostas_pre) > 0
@@ -457,7 +466,7 @@ def busca_global_ajax(request):
             'url': reverse('detalhe_participante', args=[aluno.id]) 
         })
 
-    modulos = Modulo.objects.filter(titulo__icontains=query)[:3]
+    modulos = Modulo.objects.active().filter(titulo__icontains=query)[:3]
     for mod in modulos:
         resultados.append({
             'tipo': 'Módulo',
@@ -466,7 +475,7 @@ def busca_global_ajax(request):
             'url': reverse('editar_modulo', args=[mod.id])
         })
 
-    aulas = Videoaula.objects.filter(titulo__icontains=query)[:3]
+    aulas = Videoaula.objects.active().filter(titulo__icontains=query)[:3]
     for aula in aulas:
         resultados.append({
             'tipo': 'Videoaula',
@@ -475,7 +484,7 @@ def busca_global_ajax(request):
             'url': reverse('editar_videoaula', args=[aula.id])
         })
 
-    atividades = Atividade.objects.filter(titulo__icontains=query)[:3]
+    atividades = Atividade.objects.active().filter(titulo__icontains=query)[:3]
     for atv in atividades:
         resultados.append({
             'tipo': atv.get_tipo_display(),
@@ -507,11 +516,15 @@ def detalhe_participante(request, aluno_id,):
                 
             aluno.save()
             messages.success(request, 'Dados do participante atualizados com sucesso!')
+            if aluno.is_staff:
+                return redirect('painel_pesquisador')
             return redirect('detalhe_participante', aluno_id=aluno.id)
             
         elif acao == 'excluir_aluno':
-            aluno.delete()
-            messages.success(request, 'Participante excluído permanentemente do sistema.')
+            aluno.is_active = False
+            aluno.is_staff = False
+            aluno.save(update_fields=['is_active', 'is_staff'])
+            messages.info(request, 'Participante desativado para preservar o histórico da pesquisa.')
             return redirect('painel_pesquisador')
             
     escolas = Escola.objects.all()
@@ -530,7 +543,7 @@ def detalhe_participante(request, aluno_id,):
 
 @staff_member_required(login_url='/login/')
 def gestao_modulos(request):
-    modulos = Modulo.objects.all().order_by('ordem')
+    modulos = Modulo.objects.active().order_by('ordem')
     return render(request, 'gestao_modulos.html', {'modulos': modulos})
 
 @staff_member_required(login_url='/login/')
@@ -562,17 +575,18 @@ def editar_modulo(request, modulo_id):
 def excluir_modulo(request, modulo_id):
     modulo = get_object_or_404(Modulo, id=modulo_id)
     if request.method == 'POST':
-        modulo.delete()
+        modulo.soft_delete()
+        messages.info(request, 'Módulo desativado para preservar o histórico da pesquisa.')
     return redirect('gestao_modulos')
 
 @staff_member_required(login_url='/login/')
 def gestao_videoaulas(request):
-    videoaulas = Videoaula.objects.select_related('modulo').order_by('modulo__ordem', 'ordem')
+    videoaulas = Videoaula.objects.active().select_related('modulo').order_by('modulo__ordem', 'ordem')
     return render(request, 'gestao_videoaulas.html', {'videoaulas': videoaulas})
 
 @staff_member_required(login_url='/login/')
 def criar_videoaula(request):
-    modulos = Modulo.objects.all().order_by('ordem')
+    modulos = Modulo.objects.active().order_by('ordem')
     if request.method == 'POST':
         modulo = get_object_or_404(Modulo, id=request.POST.get('modulo'))
         
@@ -600,7 +614,7 @@ def criar_videoaula(request):
 @staff_member_required(login_url='/login/')
 def editar_videoaula(request, aula_id):
     aula = get_object_or_404(Videoaula, id=aula_id)
-    modulos = Modulo.objects.all().order_by('ordem')
+    modulos = Modulo.objects.active().order_by('ordem')
     
     if request.method == 'POST':
         aula.modulo = get_object_or_404(Modulo, id=request.POST.get('modulo'))
@@ -630,17 +644,18 @@ def editar_videoaula(request, aula_id):
 def excluir_videoaula(request, aula_id):
     aula = get_object_or_404(Videoaula, id=aula_id)
     if request.method == 'POST':
-        aula.delete()
+        aula.soft_delete()
+        messages.info(request, 'Videoaula desativada para preservar o histórico da pesquisa.')
     return redirect('gestao_videoaulas')
 
 @staff_member_required(login_url='/login/')
 def gestao_atividades(request):
-    atividades = Atividade.objects.select_related('modulo').order_by('modulo__ordem', 'tipo')
+    atividades = Atividade.objects.active().select_related('modulo').order_by('modulo__ordem', 'tipo')
     return render(request, 'gestao_atividades.html', {'atividades': atividades})
 
 @staff_member_required(login_url='/login/')
 def criar_atividade(request):
-    modulos = Modulo.objects.all().order_by('ordem')
+    modulos = Modulo.objects.active().order_by('ordem')
     tipos_atividade = Atividade.TIPO_CHOICES 
     
     if request.method == 'POST':
@@ -659,7 +674,7 @@ def criar_atividade(request):
 @staff_member_required(login_url='/login/')
 def editar_atividade(request, atividade_id):
     atividade = get_object_or_404(Atividade, id=atividade_id)
-    modulos = Modulo.objects.all().order_by('ordem')
+    modulos = Modulo.objects.active().order_by('ordem')
     tipos_atividade = Atividade.TIPO_CHOICES
     
     if request.method == 'POST':
@@ -676,13 +691,14 @@ def editar_atividade(request, atividade_id):
 def excluir_atividade(request, atividade_id):
     atividade = get_object_or_404(Atividade, id=atividade_id)
     if request.method == 'POST':
-        atividade.delete()
+        atividade.soft_delete()
+        messages.info(request, 'Atividade desativada para preservar o histórico da pesquisa.')
     return redirect('gestao_atividades')
 
 @staff_member_required(login_url='/login/')
 def gerenciar_perguntas(request, atividade_id):
     atividade = get_object_or_404(Atividade, id=atividade_id)
-    perguntas = atividade.perguntas.all().order_by('ordem')
+    perguntas = atividade.perguntas.active().order_by('ordem')
     return render(request, 'gerenciar_perguntas.html', {'atividade': atividade, 'perguntas': perguntas})
 
 @staff_member_required(login_url='/login/')
@@ -721,7 +737,8 @@ def excluir_pergunta(request, pergunta_id):
     pergunta = get_object_or_404(Pergunta, id=pergunta_id)
     atividade_id = pergunta.atividade.id 
     if request.method == 'POST':
-        pergunta.delete()
+        pergunta.soft_delete()
+        messages.info(request, 'Pergunta desativada para preservar o histórico da pesquisa.')
     return redirect('gerenciar_perguntas', atividade_id=atividade_id)
 
 @staff_member_required(login_url='/login/')
@@ -744,8 +761,8 @@ def configurar_pergunta(request, pergunta_id):
             )
         return redirect('configurar_pergunta', pergunta_id=pergunta.id)
         
-    alternativas = pergunta.alternativas.all() if pergunta.tipo_pergunta == 'MULTIPLA' else None
-    itens_associacao = pergunta.itens_associacao.all() if pergunta.tipo_pergunta == 'ASSOC' else None
+    alternativas = pergunta.alternativas.active() if pergunta.tipo_pergunta == 'MULTIPLA' else None
+    itens_associacao = pergunta.itens_associacao.active() if pergunta.tipo_pergunta == 'ASSOC' else None
     
     context = {
         'pergunta': pergunta,
@@ -760,7 +777,8 @@ def excluir_alternativa(request, alternativa_id):
     alternativa = get_object_or_404(Alternativa, id=alternativa_id)
     pergunta_id = alternativa.pergunta.id
     if request.method == 'POST':
-        alternativa.delete()
+        alternativa.soft_delete()
+        messages.info(request, 'Alternativa desativada para preservar o histórico da pesquisa.')
     return redirect('configurar_pergunta', pergunta_id=pergunta_id)
 
 @staff_member_required(login_url='/login/')
@@ -768,5 +786,6 @@ def excluir_item_associacao(request, item_id):
     item = get_object_or_404(ItemAssociacao, id=item_id)
     pergunta_id = item.pergunta.id
     if request.method == 'POST':
-        item.delete()
+        item.soft_delete()
+        messages.info(request, 'Item de associação desativado para preservar o histórico da pesquisa.')
     return redirect('configurar_pergunta', pergunta_id=pergunta_id)

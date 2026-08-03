@@ -13,21 +13,31 @@ class AtividadeInline(admin.StackedInline):
 
 @admin.register(Modulo)
 class ModuloAdmin(admin.ModelAdmin):
-    list_display = ('ordem', 'titulo')
+    list_display = ('ordem', 'titulo', 'is_active')
+    list_filter = ('is_active',)
     ordering = ('ordem',)
     inlines = [VideoaulaInline, AtividadeInline]
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_active=True)
+
 @admin.register(Videoaula)
 class VideoaulaAdmin(admin.ModelAdmin):
-    list_display = ('ordem', 'titulo', 'modulo', 'duracao')
-    list_filter = ('modulo',)
+    list_display = ('ordem', 'titulo', 'modulo', 'duracao', 'is_active')
+    list_filter = ('modulo', 'is_active')
     search_fields = ('titulo',)
     ordering = ('modulo', 'ordem')
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_active=True)
+
 @admin.register(Atividade)
 class AtividadeAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'tipo', 'modulo')
-    list_filter = ('modulo', 'tipo')
+    list_display = ('titulo', 'tipo', 'modulo', 'is_active')
+    list_filter = ('modulo', 'tipo', 'is_active')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_active=True)
 
 
 class AlternativaInline(admin.TabularInline):
@@ -40,8 +50,10 @@ class ItemAssociacaoInline(admin.TabularInline):
 
 @admin.register(Pergunta)
 class PerguntaAdmin(admin.ModelAdmin):
-    list_display = ('enunciado', 'tipo_pergunta', 'atividade', 'ordem')
-    list_filter = ('atividade', 'tipo_pergunta')
+    list_display = ('enunciado', 'tipo_pergunta', 'atividade', 'ordem', 'is_active')
+    list_filter = ('atividade', 'tipo_pergunta', 'is_active')
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_active=True)
     # O Django é inteligente: mostra as duas opções de cadastro na mesma tela
     inlines = [AlternativaInline, ItemAssociacaoInline] 
 

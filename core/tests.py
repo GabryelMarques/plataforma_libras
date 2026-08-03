@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from accounts.models import Usuario, TCLEAceite
-from modulos.models import Modulo
+from modulos.models import Modulo, Videoaula, ProgressoAula, Atividade, Pergunta, Alternativa, RespostaAluno
 
 class SegurancaTCLETest(TestCase):
     def setUp(self):
@@ -67,3 +67,44 @@ class HomeViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "bi-image")
         self.assertNotContains(response, "/media/capas/arquivo-nao-existe.jpg")
+
+
+class DashboardAndActivityLogicTests(TestCase):
+    def setUp(self):
+        self.aluno = Usuario.objects.create_user(
+            email='dashboard@teste.com', username='dashboard_teste', password='senha123', nome='Aluno Dashboard'
+        )
+        TCLEAceite.objects.create(usuario=self.aluno, aceito=True)
+
+    def test_dashboard_progress_counts_only_active_aulas(self):
+        """Garante que o progresso do dashboard ignore aulas desativadas no cálculo."""
+        self.client.force_login(self.aluno)
+
+        modulo = Modulo.objects.create(titulo='Módulo teste', descricao='Descrição teste')
+        aula_ativa = Videoaula.objects.create(modulo=modulo, titulo='Aula ativa')
+        aula_inativa = Videoaula.objects.create(modulo=modulo, titulo='Aula antiga')
+        aula_inativa.soft_delete()
+
+        ProgressoAula.objects.create(aluno=self.aluno, aula=aula_ativa, concluida=True)
+        ProgressoAula.objects.create(aluno=self.aluno, aula=aula_inativa, concluida=True)
+
+        response = self.client.get(reverse('dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['progresso_geral'], 100)
+
+    def test_responder_atividade_bloqueia_acesso_apos_qualquer_resposta(self):
+        """Garante que a atividade não fique disponível novamente após qualquer resposta registrada."""
+        self.client.force_login(self.aluno)
+
+        modulo = Modulo.objects.create(titulo='Módulo teste', descricao='Descrição teste')
+        atividade = Atividade.objects.create(modulo=modulo, titulo='Atividade teste', tipo='EXERCICIO')
+        pergunta_1 = Pergunta.objects.create(atividade=atividade, enunciado='Pergunta 1', tipo_pergunta='MULTIPLA')
+        pergunta_2 = Pergunta.objects.create(atividade=atividade, enunciado='Pergunta 2', tipo_pergunta='MULTIPLA')
+
+        alternativa = Alternativa.objects.create(pergunta=pergunta_2, texto='Opção', is_correta=True)
+        RespostaAluno.objects.create(aluno=self.aluno, pergunta=pergunta_2, alternativa=alternativa)
+
+        response = self.client.get(reverse('responder_atividade', args=[atividade.id]))
+
+        self.assertRedirects(response, reverse('dashboard'))

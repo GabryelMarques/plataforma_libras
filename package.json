@@ -1,0 +1,23 @@
+{
+  "name": "projeto_plataforma_libras",
+  "version": "1.0.0",
+  "description": "![Status](<https://img.shields.io/badge/Status-Em%20Desenvolvimento-success>)\r ![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)\r ![Django](https://img.shields.io/badge/Django-6.0-092E20?logo=django)\r ![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap&logoColor=white)\r ![License](https://img.shields.io/badge/Licença-Acadêmica-blue)",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GabryelMarques/plataforma_libras.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GabryelMarques/plataforma_libras/issues"
+  },
+  "homepage": "https://github.com/GabryelMarques/plataforma_libras#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.1.2"
+  }
+}

@@ -45,13 +45,13 @@
                     
                     <td class="py-4 text-center">
                         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                            <i class="bi bi-play-btn text-muted me-1"></i> {{ modulo.videoaulas.count }}
+                            <i class="bi bi-play-btn text-muted me-1"></i> {{ modulo.qtd_videoaulas_ativas }}
                         </span>
                     </td>
                     
                     <td class="py-4 text-center">
                         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
-                            <i class="bi bi-clipboard-check text-muted me-1"></i> {{ modulo.atividades.count }}
+                            <i class="bi bi-clipboard-check text-muted me-1"></i> {{ modulo.qtd_atividades_ativas }}
                         </span>
                     </td>
                     
@@ -86,8 +86,8 @@
                                     <h4 class="fw-bold mb-2">Excluir Módulo?</h4>
                                     <p class="text-muted mb-4">Tem certeza que deseja excluir o módulo <strong>{{ modulo.titulo }}</strong>?</p>
                                     
-                                    <div class="alert alert-danger small text-start mb-0" style="border-radius: 8px;">
-                                        <i class="bi bi-info-circle-fill me-1"></i> Esta ação apagará permanentemente <strong>TODAS</strong> as videoaulas e testes vinculados a este módulo.
+                                    <div class="alert alert-warning small text-start mb-0" style="border-radius: 8px;">
+                                        <i class="bi bi-info-circle-fill me-1"></i> Esta ação <strong>desativará</strong> o módulo e preservará o histórico de aulas, atividades e respostas já registradas.
                                     </div>
                                 </div>
                                 <div class="modal-footer border-top-0 justify-content-center pt-0 pb-4 gap-2">
