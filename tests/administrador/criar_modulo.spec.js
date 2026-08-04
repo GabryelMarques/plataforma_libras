@@ -4,8 +4,8 @@ test('administrador consegue criar um novo modulo', async ({ page }) => {
   // 1. Fazer o Login
   await page.goto('http://127.0.0.1:8000/sair/');
   await page.goto('http://127.0.0.1:8000/login/');
-  await page.locator('input[name="email"]').fill('gabryelmarques17@gmail.com');
-  await page.locator('input[name="senha"]').fill('Mark6025@');
+  await page.locator('input[name="email"]').fill('grobo@teste.com');
+  await page.locator('input[name="senha"]').fill('SenhaFalsa123.');
   await page.getByRole('button', { name: /Entrar na Plataforma/i }).click();
 
   // ---> A MÁGICA DA CORREÇÃO AQUI <---
